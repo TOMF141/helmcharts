@@ -1,0 +1,39 @@
+# Default container image and tag
+image:
+  repository: cloudb0x/autoscan
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Common labels
+labels: {}
+
+# Replica count
+replicaCount: 1
+
+# Pod resource requests and limits
+resources:
+  limits:
+    cpu: 50m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+# Persistence
+persistence:
+  conf:
+    enabled: true # Whether to create a new PVC
+    size: 500Mi # PVC size if we create it
+    existingClaim: "" # If set to a non-empty string, use this existing PVC
+  database:
+    enabled: true
+    size: 500Mi
+    existingClaim: ""
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3030
+
+# Name of the Secret that contains the autoscan config
+autoscanConfigSecretName: autoscan-config

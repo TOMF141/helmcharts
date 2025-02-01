@@ -21,6 +21,9 @@ spec:
         app.kubernetes.io/name: autoscan
         {{- include "autoscan.labels" . | nindent 8 }}
     spec:
+      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 6 }}
+      tolerations: {{- toYaml .Values.tolerations | nindent 6 }}
+      affinity: {{- toYaml .Values.affinity | nindent 6 }}
       containers:
         - name: autoscan
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

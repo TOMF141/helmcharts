@@ -19,12 +19,17 @@ resources:
     cpu: 10m
     memory: 64Mi
 
+# Node scheduling parameters
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
 # Persistence
 persistence:
   conf:
-    enabled: true # Whether to create a new PVC
-    size: 500Mi # PVC size if we create it
-    existingClaim: "" # If set to a non-empty string, use this existing PVC
+    enabled: true
+    size: 500Mi
+    existingClaim: ""
   database:
     enabled: true
     size: 500Mi

@@ -22,9 +22,12 @@ spec:
         {{- include "autoscan.labels" . | nindent 8 }}
     spec:
       # Node scheduling
-      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 6 }}
-      tolerations: {{- toYaml .Values.tolerations | nindent 6 }}
-      affinity: {{- toYaml .Values.affinity | nindent 6 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
 
       containers:
         - name: autoscan
@@ -56,13 +59,10 @@ spec:
                       sed -i "s/PLEX_TOKEN_PLACEHOLDER/${token}/g" /config/config.yml;
                     fi
           volumeMounts:
-            # The chart-generated (or existing) config secret
             - name: autoscan-config
               mountPath: /tmp/config
-            # The conf PVC
             - name: autoscan-conf
               mountPath: /config
-            # The database PVC
             - name: autoscan-database
               mountPath: /data
             {{- if .Values.config.targets.plex.useTokenSecret }}

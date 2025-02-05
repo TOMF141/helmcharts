@@ -47,17 +47,17 @@ spec:
           postStart:
             exec:
               command:
-              - /bin/sh
-              - -c
-              - >
-                # Copy the config from /tmp/config to /config
-                cp /tmp/config/config.yml /config/config.yml;
+                - /bin/sh
+                - -c
+                - |
+                  # Copy the config from /tmp/config to /config
+                  cp /tmp/config/config.yml /config/config.yml
 
-                # If we have a mounted plex-token file, do the placeholder replacement
-                if [ -f /tmp/plex-token/{{ .Values.config.targets.plex.tokenSecret.key }} ]; then
-                  token=$(cat /tmp/plex-token/{{ .Values.config.targets.plex.tokenSecret.key }});
-                  sed -i "s/PLEX_TOKEN_PLACEHOLDER/${token}/g" /config/config.yml;
-                fi
+                  # If we have a mounted plex-token file, do the placeholder replacement
+                  if [ -f /tmp/plex-token/{{ .Values.config.targets.plex.tokenSecret.key }} ]; then
+                    token=$(cat /tmp/plex-token/{{ .Values.config.targets.plex.tokenSecret.key }});
+                    sed -i "s/PLEX_TOKEN_PLACEHOLDER/${token}/g" /config/config.yml;
+                  fi
         volumeMounts:
         - name: autoscan-config
           mountPath: /tmp/config

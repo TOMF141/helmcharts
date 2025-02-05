@@ -72,36 +72,25 @@ spec:
             {{- end }}
       restartPolicy: Always
 
-      volumes:
-        - name: autoscan-config
-          secret:
-            secretName: {{- if .Values.config.existingSecret -}}
-              {{ .Values.config.existingSecret }}
-            {{- else -}}
-              {{ include "autoscan.fullname" . }}-config
-            {{- end }}
+volumes:
+  - name: autoscan-config
+    secret:
+      secretName:{{- if .Values.config.existingSecret }} {{ .Values.config.existingSecret }}{{- else }} {{ include "autoscan.fullname" . }}-config{{- end }}
 
-        - name: autoscan-conf
-          persistentVolumeClaim:
-            claimName: {{- if .Values.persistence.conf.existingClaim -}}
-              {{ .Values.persistence.conf.existingClaim }}
-            {{- else -}}
-              {{ include "autoscan.fullname" . }}-conf
-            {{- end }}
+  - name: autoscan-conf
+    persistentVolumeClaim:
+      claimName:{{- if .Values.persistence.conf.existingClaim }} {{ .Values.persistence.conf.existingClaim }}{{- else }} {{ include "autoscan.fullname" . }}-conf{{- end }}
 
-        - name: autoscan-database
-          persistentVolumeClaim:
-            claimName: {{- if .Values.persistence.database.existingClaim -}}
-              {{ .Values.persistence.database.existingClaim }}
-            {{- else -}}
-              {{ include "autoscan.fullname" . }}-database
-            {{- end }}
+  - name: autoscan-database
+    persistentVolumeClaim:
+      claimName:{{- if .Values.persistence.database.existingClaim }} {{ .Values.persistence.database.existingClaim }}{{- else }} {{ include "autoscan.fullname" . }}-database{{- end }}
 
-        {{- if .Values.config.targets.plex.useTokenSecret }}
-        - name: plex-token
-          secret:
-            secretName: {{ .Values.config.targets.plex.tokenSecret.name }}
-            items:
-              - key: {{ .Values.config.targets.plex.tokenSecret.key }}
-                path: {{ .Values.config.targets.plex.tokenSecret.key }}
-        {{- end }}
+  {{- if .Values.config.targets.plex.useTokenSecret }}
+  - name: plex-token
+    secret:
+      secretName: {{ .Values.config.targets.plex.tokenSecret.name }}
+      items:
+        - key: {{ .Values.config.targets.plex.tokenSecret.key }}
+          path: {{ .Values.config.targets.plex.tokenSecret.key }}
+  {{- end }}
+

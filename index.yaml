@@ -3,6 +3,16 @@ entries:
   autoscan:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2025-02-05T11:04:42.814430415Z"
+    description: A Helm chart to deploy autoscan
+    digest: 0322c969baba96a0177a18d3058dc7ba2298b2ffd6fcaab044e88fb7a684ae05
+    name: autoscan
+    type: application
+    urls:
+    - https://github.com/TOMF141/helmcharts/releases/download/autoscan-0.1.1/autoscan-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2025-02-05T10:34:21.15324722Z"
     description: A Helm chart to deploy autoscan
     digest: 94a1c7d976fa36444f28f8084357440ce3f9b2e8fbb40e9bfb914ac7ce4c1ddf
@@ -11,4 +21,4 @@ entries:
     urls:
     - https://github.com/TOMF141/helmcharts/releases/download/autoscan-0.1.0/autoscan-0.1.0.tgz
     version: 0.1.0
-generated: "2025-02-05T10:34:21.153254093Z"
+generated: "2025-02-05T11:04:42.814439141Z"

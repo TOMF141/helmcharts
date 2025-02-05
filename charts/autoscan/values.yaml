@@ -75,10 +75,12 @@ persistence:
     enabled: true
     size: 500Mi
     existingClaim: ""
+    storageClass: ""
   database:
     enabled: true
     size: 500Mi
     existingClaim: ""
+    storageClass: ""
 
 # ------------------------------------------------------------------------------
 # Service configuration

@@ -60,8 +60,8 @@ config:
 
   targets:
     plex:
-      url: "https://10-3-202-11.xxxxxx.plex.direct:32400"
-      token: "xxxxxxx" # Used if useTokenSecret is false
+      url: ""
+      token: "" # Used if useTokenSecret is false
       useTokenSecret: false # If true, we’ll do a placeholder in config.yml
       tokenSecret:
         name: "my-plex-token-secret"

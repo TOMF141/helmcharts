@@ -16,7 +16,7 @@ jobs:
         uses: huggingface/helm-publish-action@latest
         with:
             workingDirectory: charts
-            repository: https://harbor.tf141.me/helm
+            repository: https://harbor.tf141.me/
             username: ${{ secrets.HARBOR_USERNAME }}
             password: ${{ secrets.HARBOR_PASSWORD }}
             # beforeHook: cd subcharts/my-sub-chart && helm dependencies update

@@ -79,11 +79,7 @@ spec:
       volumes:
       - name: sonarr-config
         persistentVolumeClaim:
-          claimName: {{- if .Values.persistence.config.existingClaim -}}
-          {{ .Values.persistence.config.existingClaim }}
-          {{- else -}}
-          {{ include "sonarr.fullname" . }}-config
-          {{- end }}
+          claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "sonarr.fullname" . }}-config{{- end }}
 
       - name: sonarr-xml
         secret:

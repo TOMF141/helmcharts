@@ -83,11 +83,7 @@ spec:
 
       - name: sonarr-xml
         secret:
-          secretName: {{- if .Values.configXml.existingSecret -}}
-            {{ .Values.configXml.existingSecret }}
-          {{- else -}}
-            {{ include "sonarr.fullname" . }}-xml
-          {{- end }}
+          secretName:{{- if .Values.configXml.existingSecret }} {{ .Values.configXml.existingSecret }}{{- else }} {{ include "sonarr.fullname" . }}-xml{{- end }}
 
       {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
       - name: plexmedia-nfs

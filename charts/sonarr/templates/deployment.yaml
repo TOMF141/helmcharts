@@ -80,9 +80,9 @@ spec:
       - name: sonarr-config
         persistentVolumeClaim:
           claimName: {{- if .Values.persistence.config.existingClaim -}}
-            {{ .Values.persistence.config.existingClaim }}
+          {{ .Values.persistence.config.existingClaim }}
           {{- else -}}
-            {{ include "sonarr.fullname" . }}-config
+          {{ include "sonarr.fullname" . }}-config
           {{- end }}
 
       - name: sonarr-xml

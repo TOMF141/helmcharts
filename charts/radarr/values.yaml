@@ -57,7 +57,7 @@ tolerations: []
 affinity: {}
 
 # ------------------------------------------------------------------------------
-# Persistence for Radarr config
+# Persistence for Radarr config (/config)
 # ------------------------------------------------------------------------------
 persistence:
   config:
@@ -83,8 +83,8 @@ hostname: radarr
 # configXml: Template-driven config.xml
 # ------------------------------------------------------------------------------
 configXml:
-  # If non-empty, references an existing secret with a key "config.xml";
-  # otherwise the chart will create a secret containing rendered config.xml.
+  # If non-empty, references an existing secret with key "config.xml".
+  # Otherwise, chart creates a secret with the rendered config.xml.
   existingSecret: ""
 
   bindAddress: "*"
@@ -92,7 +92,7 @@ configXml:
   sslPort: 9898
   enableSsl: "False"
   launchBrowser: "True"
-  apiKey: "xxxxxxxxxxx"
+  apiKey: ""
   authenticationMethod: "External"
   authenticationRequired: "DisabledForLocalAddresses"
   branch: "main"
@@ -102,5 +102,13 @@ configXml:
   urlBase: ""
   instanceName: "Radarr"
   updateMechanism: "Docker"
-  # If you want Postgres or any other DB config, you can add a similar pattern here.
-  # For now, we'll skip it unless you specify you need it.
+
+  # Postgres block
+  postgres:
+    enabled: false
+    user: ""
+    password: ""
+    host: ""
+    port: ""
+    mainDb: ""
+    logDb: ""

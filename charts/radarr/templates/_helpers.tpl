@@ -25,5 +25,14 @@
   <UrlBase>{{ .Values.configXml.urlBase }}</UrlBase>
   <InstanceName>{{ .Values.configXml.instanceName }}</InstanceName>
   <UpdateMechanism>{{ .Values.configXml.updateMechanism }}</UpdateMechanism>
+
+  {{- if .Values.configXml.postgres.enabled }}
+  <PostgresUser>{{ .Values.configXml.postgres.user }}</PostgresUser>
+  <PostgresPassword>{{ .Values.configXml.postgres.password }}</PostgresPassword>
+  <PostgresHost>{{ .Values.configXml.postgres.host }}</PostgresHost>
+  <PostgresPort>{{ .Values.configXml.postgres.port }}</PostgresPort>
+  <PostgresMainDb>{{ .Values.configXml.postgres.mainDb }}</PostgresMainDb>
+  <PostgresLogDb>{{ .Values.configXml.postgres.logDb }}</PostgresLogDb>
+  {{- end }}
 </Config>
 {{- end }}

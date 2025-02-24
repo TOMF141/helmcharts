@@ -1,0 +1,106 @@
+# ------------------------------------------------------------------------------
+# Image configuration
+# ------------------------------------------------------------------------------
+image:
+  repository: lscr.io/linuxserver/radarr
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# ------------------------------------------------------------------------------
+# Number of replicas
+# ------------------------------------------------------------------------------
+replicaCount: 1
+
+# ------------------------------------------------------------------------------
+# Additional labels
+# ------------------------------------------------------------------------------
+labels: {}
+
+# ------------------------------------------------------------------------------
+# Environment variables (UMASK, etc.)
+# ------------------------------------------------------------------------------
+env:
+  UMASK: "000"
+
+# ------------------------------------------------------------------------------
+# Liveness probe
+# ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  command: |
+    curl --fail localhost:7878/api/v3/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
+
+# ------------------------------------------------------------------------------
+# Service config
+# ------------------------------------------------------------------------------
+service:
+  type: ClusterIP
+  port: 7878
+
+# ------------------------------------------------------------------------------
+# Resource requests & limits
+# ------------------------------------------------------------------------------
+resources:
+  limits:
+    memory: 4Gi
+  requests:
+    cpu: 50m
+    memory: 1Gi
+
+# ------------------------------------------------------------------------------
+# Node scheduling
+# ------------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ------------------------------------------------------------------------------
+# Persistence for Radarr config
+# ------------------------------------------------------------------------------
+persistence:
+  config:
+    enabled: true
+    size: 1Gi
+    existingClaim: ""
+    storageClass: ""
+
+# ------------------------------------------------------------------------------
+# NFS volume for media
+# ------------------------------------------------------------------------------
+nfs:
+  enabled: true
+  server: "10.3.200.151"
+  path: "/mnt/zpool/plexmedia"
+
+# ------------------------------------------------------------------------------
+# Hostname override
+# ------------------------------------------------------------------------------
+hostname: radarr
+
+# ------------------------------------------------------------------------------
+# configXml: Template-driven config.xml
+# ------------------------------------------------------------------------------
+configXml:
+  # If non-empty, references an existing secret with a key "config.xml";
+  # otherwise the chart will create a secret containing rendered config.xml.
+  existingSecret: ""
+
+  bindAddress: "*"
+  port: 7878
+  sslPort: 9898
+  enableSsl: "False"
+  launchBrowser: "True"
+  apiKey: "xxxxxxxxxxx"
+  authenticationMethod: "External"
+  authenticationRequired: "DisabledForLocalAddresses"
+  branch: "main"
+  logLevel: "info"
+  sslCertPath: ""
+  sslCertPassword: ""
+  urlBase: ""
+  instanceName: "Radarr"
+  updateMechanism: "Docker"
+  # If you want Postgres or any other DB config, you can add a similar pattern here.
+  # For now, we'll skip it unless you specify you need it.

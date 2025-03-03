@@ -13,7 +13,6 @@ This repository contains a collection of Helm charts for deploying various appli
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Renovate Integration](#renovate-integration)
-- [Contributing](#contributing)
 
 ## Overview
 

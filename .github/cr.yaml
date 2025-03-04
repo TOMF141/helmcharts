@@ -1,6 +1,7 @@
 # Chart Releaser configuration
 # See: https://github.com/helm/chart-releaser
 
+owner: ct1123
 # Specify the index path
 index-path: .cr-index/index.yaml
 

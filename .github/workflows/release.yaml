@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'charts/**'
+      - 'README.md'
 
 jobs:
   release:
@@ -14,10 +15,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+      
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+      
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         env:
@@ -25,3 +35,68 @@ jobs:
         with:
           pages_branch: gh-pages
           charts_dir: './charts'
+          skip_existing: false
+      
+      # Ensure all charts are packaged and available
+      - name: Package all charts
+        run: |
+          mkdir -p .cr-release-packages
+          mkdir -p .cr-index
+          
+          # Package each chart
+          for chart in charts/*; do
+            if [ -d "$chart" ]; then
+              echo "Packaging chart: $chart"
+              helm package "$chart" -d .cr-release-packages/
+            fi
+          done
+          
+          # Update index
+          helm repo index --url https://tomf141.github.io/helmcharts/ --merge .cr-index/index.yaml .cr-release-packages/
+      
+      # Add README content to GitHub Pages
+      - name: Checkout gh-pages
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      
+      - name: Install markdown-to-html converter
+        run: npm install -g markdown-it
+      
+      - name: Copy README and convert to HTML
+        run: |
+          # Copy README.md to gh-pages directory
+          cp README.md gh-pages/
+          
+          # Convert README.md to index.html
+          markdown-it README.md > gh-pages/index.html
+          
+          # Add HTML header and styling
+          sed -i '1i<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Helm Charts Collection</title>\n<style>\nbody { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 1000px; margin: 0 auto; color: #24292e; }\ncode { background-color: rgba(27,31,35,.05); border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 85%; margin: 0; padding: .2em .4em; }\npre { background-color: #f6f8fa; border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 85%; line-height: 1.45; overflow: auto; padding: 16px; }\npre code { background-color: transparent; padding: 0; }\ntable { border-collapse: collapse; width: 100%; }\ntable th, table td { border: 1px solid #dfe2e5; padding: 6px 13px; }\ntable tr { background-color: #fff; border-top: 1px solid #c6cbd1; }\ntable tr:nth-child(2n) { background-color: #f6f8fa; }\na { color: #0366d6; text-decoration: none; }\na:hover { text-decoration: underline; }\nh1, h2, h3, h4, h5, h6 { margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; }\nh1 { font-size: 2em; margin: .67em 0; padding-bottom: .3em; border-bottom: 1px solid #eaecef; }\nh2 { padding-bottom: .3em; font-size: 1.5em; border-bottom: 1px solid #eaecef; }\nh3 { font-size: 1.25em; }\nh4 { font-size: 1em; }\nh5 { font-size: .875em; }\nh6 { font-size: .85em; color: #6a737d; }\n</style>\n</head>\n<body>\n' gh-pages/index.html
+          echo "</body>\n</html>" >> gh-pages/index.html
+          
+          # Add a link to the Helm repository
+          sed -i 's|<h1>Helm Charts Collection</h1>|<h1>Helm Charts Collection</h1>\n<p><strong>Helm Repository URL:</strong> <code>https://tomf141.github.io/helmcharts/</code></p>|' gh-pages/index.html
+      
+      - name: Copy packaged charts to gh-pages
+        run: |
+          # Copy packaged charts to gh-pages directory
+          cp -r .cr-release-packages/* gh-pages/
+          
+          # Copy updated index.yaml to gh-pages directory
+          if [ -f ".cr-index/index.yaml" ]; then
+            cp .cr-index/index.yaml gh-pages/
+          fi
+      
+      - name: Commit and push changes
+        run: |
+          cd gh-pages
+          git add .
+          git commit -m "Update GitHub Pages with README content and all charts" || echo "No changes to commit"
+          git push

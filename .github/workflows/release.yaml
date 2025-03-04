@@ -143,6 +143,8 @@ jobs:
 
       - name: Commit and push gh-pages changes
         run: |
+          git config user.name "GithubActions"
+          git config user.email "GithubActions@users.noreply.github.com"
           cd gh-pages
           git add .
           git commit -m "Update GitHub Pages with charts and documentation" || echo "No changes to commit"

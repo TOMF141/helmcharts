@@ -26,3 +26,5 @@ release-notes-template: |
   {{ if .AppVersion }}App version: {{ .AppVersion }}{{ end }}
 
 pages_branch: gh-pages
+
+#

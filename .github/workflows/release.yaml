@@ -60,6 +60,7 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
+          token: ${{ secrets.CR_TOKEN }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -97,6 +98,8 @@ jobs:
       - name: Commit and push changes
         run: |
           cd gh-pages
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git add .
           git commit -m "Update GitHub Pages with README content and all charts" || echo "No changes to commit"
-          git push
+          git push https://${GITHUB_ACTOR}:${{ secrets.CR_TOKEN }}@github.com/TOMF141/helmcharts.git gh-pages

@@ -152,6 +152,10 @@ jobs:
             echo "WARNING: index.yaml is missing"
           fi
           
+          # Configure git in the gh-pages directory
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          
           # Commit and push
           git add .
           git commit -m "Update Helm repository" || echo "No changes to commit"

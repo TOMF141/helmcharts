@@ -43,57 +43,76 @@ jobs:
             fi
           done
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.7.0
-        with:
-          skip_existing: false
-          packages_with_index: true
-          charts_dir: charts
-          mark_as_latest: false
-        env:
-          CR_TOKEN: "${{ secrets.GH_TOKEN }}"
+      - name: Create packages directory
+        run: mkdir -p .packages
 
-      - name: Debug - Check gh-pages branch
+      - name: Package charts manually
         run: |
-          # Clone gh-pages branch to check its content
-          git clone --branch gh-pages https://github.com/TOMF141/helmcharts.git gh-pages-check
-          echo "Content of gh-pages branch:"
-          ls -la gh-pages-check/
-          if [ -f "gh-pages-check/index.yaml" ]; then
-            echo "index.yaml exists in gh-pages branch"
-            cat gh-pages-check/index.yaml | head -20
-          else
-            echo "index.yaml DOES NOT exist in gh-pages branch"
-          fi
-
-      - name: Ensure index.yaml exists
-        if: ${{ always() }}
-        run: |
-          # If index.yaml doesn't exist in gh-pages branch, create it manually
-          if [ ! -f "gh-pages-check/index.yaml" ]; then
-            echo "Creating index.yaml manually"
-            
-            # Checkout gh-pages branch
-            git clone --branch gh-pages https://github.com/TOMF141/helmcharts.git gh-pages
-            cd gh-pages
-            
-            # Configure git
-            git config user.name "$GITHUB_ACTOR"
-            git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-            
-            # Create index.yaml if it doesn't exist
-            if [ ! -f "index.yaml" ]; then
-              # Find all .tgz files in the directory
-              echo "Looking for chart packages (.tgz files)"
-              ls -la *.tgz || echo "No .tgz files found"
-              
-              # Create index.yaml using helm
-              echo "Creating index.yaml using helm"
-              helm repo index --url https://tomf141.github.io/helmcharts/ .
-              
-              # Commit and push
-              git add index.yaml
-              git commit -m "Add index.yaml" || echo "No changes to commit"
-              git push https://$GITHUB_ACTOR:${{ secrets.GH_TOKEN }}@github.com/TOMF141/helmcharts.git gh-pages
+          # Package each chart
+          for chart in charts/*; do
+            if [ -d "$chart" ]; then
+              echo "Packaging chart: $chart"
+              helm package "$chart" -d .packages/
             fi
-          fi
+          done
+          
+          # List packaged charts
+          echo "Packaged charts:"
+          ls -la .packages/
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          token: "${{ secrets.GH_TOKEN }}"
+          
+      - name: Copy packages to gh-pages
+        run: |
+          # Copy packaged charts to gh-pages directory
+          cp -r .packages/*.tgz gh-pages/ || echo "No packages to copy"
+          
+          # List files in gh-pages
+          echo "Files in gh-pages directory:"
+          ls -la gh-pages/
+
+      - name: Generate index.yaml
+        run: |
+          cd gh-pages
+          
+          # Create index.yaml using helm
+          echo "Creating index.yaml using helm"
+          helm repo index --url https://tomf141.github.io/helmcharts/ .
+          
+          # Check the content of index.yaml
+          echo "Content of index.yaml:"
+          cat index.yaml
+
+      - name: Commit and push gh-pages changes
+        run: |
+          cd gh-pages
+          git add .
+          git commit -m "Update Helm repository" || echo "No changes to commit"
+          git push
+
+      - name: Create GitHub releases
+        run: |
+          # For each packaged chart, create a GitHub release
+          for package in .packages/*.tgz; do
+            if [ -f "$package" ]; then
+              # Extract chart name and version
+              filename=$(basename "$package")
+              chart_name=$(echo "$filename" | cut -d'-' -f1)
+              version=$(echo "$filename" | sed "s/$chart_name-//" | sed 's/\.tgz//')
+              
+              echo "Creating release for $chart_name version $version"
+              
+              # Create a GitHub release
+              gh release create "$chart_name-$version" "$package" \
+                --title "$chart_name $version" \
+                --notes "Release of $chart_name version $version" \
+                --repo "TOMF141/helmcharts"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

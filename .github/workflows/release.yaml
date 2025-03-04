@@ -34,7 +34,7 @@ jobs:
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.5.0
         env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_TOKEN: "${{ secrets.GH_TOKEN }}"
         with:
           charts_dir: charts
           config: .github/cr-config.yaml
@@ -52,7 +52,7 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ secrets.GH_TOKEN }}"
           
       - name: Create index.html from README
         run: |

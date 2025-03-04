@@ -52,13 +52,21 @@ jobs:
           for chart in charts/*; do
             if [ -d "$chart" ]; then
               echo "Packaging chart: $chart"
-              helm package "$chart" -d .packages/
+              helm package "$chart" -d .packages/ --debug
             fi
           done
           
           # List packaged charts
           echo "Packaged charts:"
           ls -la .packages/
+          
+          # Verify package contents
+          for package in .packages/*.tgz; do
+            if [ -f "$package" ]; then
+              echo "Contents of $package:"
+              tar -tvf "$package"
+            fi
+          done
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
@@ -70,27 +78,81 @@ jobs:
       - name: Copy packages to gh-pages
         run: |
           # Copy packaged charts to gh-pages directory
-          cp -r .packages/*.tgz gh-pages/ || echo "No packages to copy"
+          cp .packages/*.tgz gh-pages/ || echo "No packages to copy"
           
           # List files in gh-pages
           echo "Files in gh-pages directory:"
           ls -la gh-pages/
+          
+          # Verify the .tgz files are in gh-pages
+          echo "TGZ files in gh-pages:"
+          find gh-pages -name "*.tgz" | sort
 
       - name: Generate index.yaml
         run: |
           cd gh-pages
           
+          # List all files before generating index
+          echo "Files in gh-pages directory before generating index:"
+          ls -la
+          
           # Create index.yaml using helm
           echo "Creating index.yaml using helm"
-          helm repo index --url https://tomf141.github.io/helmcharts/ .
+          helm repo index --url https://tomf141.github.io/helmcharts/ --debug .
           
           # Check the content of index.yaml
           echo "Content of index.yaml:"
           cat index.yaml
+          
+          # Verify index.yaml has entries
+          if grep -q "entries:" index.yaml && ! grep -q "entries: {}" index.yaml; then
+            echo "index.yaml has entries"
+          else
+            echo "WARNING: index.yaml appears to be empty"
+            
+            # Try alternative approach
+            echo "Trying alternative approach to generate index.yaml"
+            rm -f index.yaml
+            
+            # Create a temporary directory
+            mkdir -p /tmp/helm-repo
+            
+            # Copy all .tgz files to the temporary directory
+            cp *.tgz /tmp/helm-repo/ || echo "No .tgz files to copy"
+            
+            # Generate index in the temporary directory
+            cd /tmp/helm-repo
+            helm repo index --url https://tomf141.github.io/helmcharts/ .
+            
+            # Check if index.yaml was created and has entries
+            if [ -f "index.yaml" ]; then
+              echo "Temporary index.yaml content:"
+              cat index.yaml
+              
+              # Copy back to gh-pages
+              cp index.yaml $GITHUB_WORKSPACE/gh-pages/
+            else
+              echo "Failed to create index.yaml in temporary directory"
+            fi
+          fi
 
       - name: Commit and push gh-pages changes
         run: |
           cd gh-pages
+          
+          # Final check of files
+          echo "Final list of files in gh-pages:"
+          ls -la
+          
+          # Check index.yaml content again
+          if [ -f "index.yaml" ]; then
+            echo "Final index.yaml content:"
+            cat index.yaml
+          else
+            echo "WARNING: index.yaml is missing"
+          fi
+          
+          # Commit and push
           git add .
           git commit -m "Update Helm repository" || echo "No changes to commit"
           git push
@@ -111,7 +173,7 @@ jobs:
               gh release create "$chart_name-$version" "$package" \
                 --title "$chart_name $version" \
                 --notes "Release of $chart_name version $version" \
-                --repo "TOMF141/helmcharts"
+                --repo "TOMF141/helmcharts" || echo "Failed to create release for $chart_name-$version"
             fi
           done
         env:

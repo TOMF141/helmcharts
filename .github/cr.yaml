@@ -24,3 +24,5 @@ release-notes-template: |
   {{ if .Description }}{{ .Description }}{{ end }}
 
   {{ if .AppVersion }}App version: {{ .AppVersion }}{{ end }}
+
+pages_branch: gh-pages

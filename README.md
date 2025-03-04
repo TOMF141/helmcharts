@@ -35,6 +35,7 @@ helm repo update
 |-------|-------------|---------|
 | [autoscan](./charts/autoscan/) | A tool that automatically scans media libraries | 0.1.7 |
 | [prowlarr](./charts/prowlarr/) | An indexer manager/proxy for various torrent and Usenet indexers | 0.1.1 |
+| [qbittorrent](./charts/qbittorrent/) | A BitTorrent client used for downloading media | 0.1.0 |
 | [radarr](./charts/radarr/) | A movie collection manager for Usenet and BitTorrent users | 0.1.x |
 | [sonarr](./charts/sonarr/) | A TV series collection manager for Usenet and BitTorrent users | 0.1.x |
 

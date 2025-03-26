@@ -71,6 +71,10 @@ spec:
         - name: backup-nfs
           mountPath: /config/backups
         {{- end }}
+        {{- if and .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+        - name: iscsi-storage
+          mountPath: {{ .Values.iscsi.mountPath }}
+        {{- end }}
 
       volumes:
       - name: tautulli-config
@@ -81,6 +85,18 @@ spec:
         nfs:
           server: {{ .Values.nfs.server }}
           path: {{ .Values.nfs.path }}
+      {{- end }}
+      {{- if and .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+      - name: iscsi-storage
+        iscsi:
+          targetPortal: {{ .Values.iscsi.targetPortal }}
+          {{- if .Values.iscsi.portals }}
+          portals: {{ .Values.iscsi.portals | toJson }}
+          {{- end }}
+          iqn: {{ .Values.iscsi.iqn }}
+          lun: {{ .Values.iscsi.lun }}
+          fsType: {{ .Values.iscsi.fsType }}
+          readOnly: {{ .Values.iscsi.readOnly }}
       {{- end }}
 
       restartPolicy: Always

@@ -92,6 +92,19 @@ nfs:
   path: "/mnt/kubebackup/kube-prod/tautulli"
 
 # ------------------------------------------------------------------------------
+# iSCSI volume configuration
+# ------------------------------------------------------------------------------
+iscsi:
+  enabled: false
+  targetPortal: "10.0.2.15:3260"
+  portals: []
+  iqn: "iqn.2001-04.com.example:storage.kube.sys1.xyz"
+  lun: 0
+  fsType: "ext4"
+  readOnly: false
+  mountPath: "/config"
+
+# ------------------------------------------------------------------------------
 # Hostname override
 # ------------------------------------------------------------------------------
 hostname: tautulli

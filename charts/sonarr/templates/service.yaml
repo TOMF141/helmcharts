@@ -16,3 +16,4 @@ spec:
   selector:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/name: sonarr
+    app: {{ include "sonarr.fullname" . }}

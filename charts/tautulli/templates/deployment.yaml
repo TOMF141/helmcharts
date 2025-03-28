@@ -65,28 +65,32 @@ spec:
         securityContext:
           allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
         volumeMounts:
+        {{- if not .Values.storage.useIscsi }}
         - name: tautulli-config
           mountPath: /config
+        {{- end }}
         {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
         - name: backup-nfs
           mountPath: /config/backups
         {{- end }}
-        {{- if and .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+        {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
         - name: iscsi-storage
-          mountPath: {{ .Values.iscsi.mountPath }}
+          mountPath: /config
         {{- end }}
 
       volumes:
+      {{- if not .Values.storage.useIscsi }}
       - name: tautulli-config
         persistentVolumeClaim:
           claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "tautulli.fullname" . }}-config{{- end }}
+      {{- end }}
       {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
       - name: backup-nfs
         nfs:
           server: {{ .Values.nfs.server }}
           path: {{ .Values.nfs.path }}
       {{- end }}
-      {{- if and .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+      {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
       - name: iscsi-storage
         iscsi:
           targetPortal: {{ .Values.iscsi.targetPortal }}

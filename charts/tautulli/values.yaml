@@ -74,7 +74,14 @@ securityContext:
   allowPrivilegeEscalation: false
 
 # ------------------------------------------------------------------------------
-# Persistence for Tautulli config
+# Storage configuration
+# ------------------------------------------------------------------------------
+storage:
+  # Set to true to use iSCSI for /config instead of PVC
+  useIscsi: false
+
+# ------------------------------------------------------------------------------
+# Persistence for Tautulli config (used when storage.useIscsi is false)
 # ------------------------------------------------------------------------------
 persistence:
   config:
@@ -92,7 +99,7 @@ nfs:
   path: "/mnt/kubebackup/kube-prod/tautulli"
 
 # ------------------------------------------------------------------------------
-# iSCSI volume configuration
+# iSCSI volume configuration (used when storage.useIscsi is true)
 # ------------------------------------------------------------------------------
 iscsi:
   enabled: false
@@ -102,7 +109,6 @@ iscsi:
   lun: 0
   fsType: "ext4"
   readOnly: false
-  mountPath: "/config"
 
 # ------------------------------------------------------------------------------
 # Hostname override

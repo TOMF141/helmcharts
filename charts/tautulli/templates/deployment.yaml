@@ -13,7 +13,9 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      io.kompose.service: tautulli
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: tautulli
+      app: {{ include "tautulli.fullname" . }}
   strategy:
     type: Recreate
   template:
@@ -22,7 +24,7 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/name: tautulli
         io.kompose.service: tautulli
-        app: tautulli
+        app: {{ include "tautulli.fullname" . }}
         {{- include "tautulli.labels" . | nindent 8 }}
     spec:
       hostname: {{ .Values.hostname | quote }}

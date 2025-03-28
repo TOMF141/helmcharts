@@ -16,4 +16,6 @@ spec:
     port: {{ .Values.service.port }}
     targetPort: 8181
   selector:
-    io.kompose.service: tautulli
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: tautulli
+    app: {{ include "tautulli.fullname" . }}

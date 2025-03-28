@@ -101,6 +101,7 @@ spec:
           lun: {{ .Values.iscsi.lun }}
           fsType: {{ .Values.iscsi.fsType }}
           readOnly: {{ .Values.iscsi.readOnly }}
+          chapAuthSession: false
       {{- end }}
 
       restartPolicy: Always

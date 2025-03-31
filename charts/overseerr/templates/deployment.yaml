@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "overseerr.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: overseerr
+    io.kompose.service: overseerr
+    app: overseerr
+    {{- include "overseerr.labels" . | nindent 4 }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: overseerr
+      app: {{ include "overseerr.fullname" . }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: overseerr
+        io.kompose.service: overseerr
+        app: {{ include "overseerr.fullname" . }}
+        {{- include "overseerr.labels" . | nindent 8 }}
+    spec:
+      hostname: {{ .Values.hostname | quote }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+
+      containers:
+      - name: overseerr
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        ports:
+        - containerPort: 5055
+          protocol: TCP
+        resources:
+          limits:
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          exec:
+            command:
+            - /usr/bin/env
+            - bash
+            - -c
+            - {{ .Values.livenessProbe.command | quote }}
+          failureThreshold: 3
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          successThreshold: 1
+          timeoutSeconds: 1
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+        volumeMounts:
+        {{- if not .Values.storage.useIscsi }}
+        - name: overseerr-config
+          mountPath: /config
+        {{- end }}
+        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+        - name: backup-nfs
+          mountPath: /config/backups
+        {{- end }}
+        {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+        - name: iscsi-storage
+          mountPath: /config
+        {{- end }}
+
+      volumes:
+      {{- if not .Values.storage.useIscsi }}
+      - name: overseerr-config
+        persistentVolumeClaim:
+          claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "overseerr.fullname" . }}-config{{- end }}
+      {{- end }}
+      {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+      - name: backup-nfs
+        nfs:
+          server: {{ .Values.nfs.server }}
+          path: {{ .Values.nfs.path }}
+      {{- end }}
+      {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
+      - name: iscsi-storage
+        iscsi:
+          targetPortal: {{ .Values.iscsi.targetPortal }}
+          {{- if .Values.iscsi.portals }}
+          portals: {{ .Values.iscsi.portals | toJson }}
+          {{- end }}
+          iqn: {{ .Values.iscsi.iqn }}
+          lun: {{ .Values.iscsi.lun }}
+          fsType: {{ .Values.iscsi.fsType }}
+          readOnly: {{ .Values.iscsi.readOnly }}
+          chapAuthSession: false
+      {{- end }}
+
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

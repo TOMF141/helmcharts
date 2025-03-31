@@ -1,0 +1,20 @@
+{{- if and .Values.persistence.config.enabled (eq .Values.persistence.config.existingClaim "") }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "overseerr.fullname" . }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: overseerr
+    {{- include "overseerr.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.persistence.config.storageClass }}
+  storageClassName: {{ .Values.persistence.config.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.config.size | quote }}
+{{- end }}

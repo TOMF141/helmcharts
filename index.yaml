@@ -3,20 +3,32 @@ entries:
   autoscan:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-03-28T16:18:44.37196964Z"
+    created: "2025-03-31T15:42:32.190116438Z"
     description: A Helm chart to deploy autoscan
-    digest: 378a0feed5ca9b92dcf9ea21f2d1cdfa6837dd29adb90773cdb7cafbe5ab7a3d
+    digest: 320e8b5d544c56811169618bb43251909f591af79e81627c7af75166a622f4af
     name: autoscan
     type: application
     urls:
     - https://tomf141.github.io/helmcharts/autoscan-0.1.8.tgz
     version: 0.1.8
+  overseerr:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-03-31T15:42:32.190483014Z"
+    description: A Helm chart to deploy Overseerr - a request management and media
+      discovery tool for the Plex ecosystem
+    digest: a752a9e6bbd0c9d18e28a1ad99e079a846fe3aee62593e9ba28e09fbea19297d
+    name: overseerr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/overseerr-0.1.0.tgz
+    version: 0.1.0
   prowlarr:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-03-28T16:18:44.372359398Z"
+    created: "2025-03-31T15:42:32.190894545Z"
     description: A Helm chart to deploy Prowlarr
-    digest: da98c69dae49f2b60afc33a793aa839c5c1f4d8f26ecfa67c4bf337341b01111
+    digest: 3b5de98bcd4362f3ea5b3832cc9316689aa8c3dc4007f1c35f172576c0db61b8
     name: prowlarr
     type: application
     urls:
@@ -25,9 +37,9 @@ entries:
   qbittorrent:
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.372723117Z"
+    created: "2025-03-31T15:42:32.191242978Z"
     description: A Helm chart to deploy qBittorrent
-    digest: e5ff14559b49cf3d42845a1b868be1953032c24215ccde32278ead49546db127
+    digest: 779dcf036a32d63e88e71446be6bc02314a46ee0d60bb325205849b9ea609bba
     name: qbittorrent
     type: application
     urls:
@@ -36,9 +48,9 @@ entries:
   radarr:
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2025-03-28T16:18:44.373453321Z"
+    created: "2025-03-31T15:42:32.191986711Z"
     description: A Helm chart to deploy Radarr
-    digest: 69ae00a314e1f151535e5f1b7bb8668dbd68b4dfb716d3a5f1b3e9865817c686
+    digest: f78145a27eb8d08a476426f044ab8d5ffa5852170674dce887c00081aca236ec
     name: radarr
     type: application
     urls:
@@ -46,7 +58,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2025-03-28T16:18:44.373091615Z"
+    created: "2025-03-31T15:42:32.191608142Z"
     description: A Helm chart to deploy Radarr
     digest: f3abdb5374fcfcd327367ccb39117628588ac174f393746d38b130f110e179da
     name: radarr
@@ -57,9 +69,9 @@ entries:
   sonarr:
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2025-03-28T16:18:44.374223019Z"
+    created: "2025-03-31T15:42:32.19295245Z"
     description: A Helm chart to deploy Sonarr
-    digest: c9535bfea4e5767621970665c310be572c4756b8dcdf5b4f6d2f216c6e025de2
+    digest: f5dd6c7916e3165d849ec5d225c4b605931c29598f213c0b8cb3b5c53bf71e8f
     name: sonarr
     type: application
     urls:
@@ -67,7 +79,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2025-03-28T16:18:44.373851895Z"
+    created: "2025-03-31T15:42:32.192547251Z"
     description: A Helm chart to deploy Sonarr
     digest: 7b8699cec2ff7a7a33ee9281db746127a10855431c61059d777badd56aaa3bef
     name: sonarr
@@ -77,9 +89,9 @@ entries:
     version: 0.1.5
   supabase:
   - apiVersion: v2
-    created: "2025-03-28T16:18:44.378272039Z"
+    created: "2025-03-31T15:42:32.196730707Z"
     description: The open source Firebase alternative.
-    digest: e4777e4959706b004147861c19fec58af354c175edc1af34a05767e660397c35
+    digest: 30a43cc7d1672a213935979c7dad2cba036f344e0372198f279a7a0ce566f7f5
     icon: https://avatars.githubusercontent.com/u/54469796?s=280&v=4
     name: supabase
     type: application
@@ -89,10 +101,10 @@ entries:
   tautulli:
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.38000777Z"
+    created: "2025-03-31T15:42:32.198532612Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
-    digest: e013e52ef5401a22ddb60e1d4ab2fccf69bb94291209fb356f3f22bd12c73f02
+    digest: 927108a650803f1d8bb1ee59a61b79c6707e54eb0e250992bbe963d8893be72b
     name: tautulli
     type: application
     urls:
@@ -100,7 +112,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.379670531Z"
+    created: "2025-03-31T15:42:32.198204207Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: b48b4801d53057795ab6955d4a0f956c41a29bdb611a8abc1b38471549c34568
@@ -111,7 +123,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.37932762Z"
+    created: "2025-03-31T15:42:32.197870021Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: efa4ea248a677f1c5a7828a7277c67dda979d1b0f4c3032f04395ee65c2ad0a6
@@ -122,7 +134,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.37896899Z"
+    created: "2025-03-31T15:42:32.197474089Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: a0815c80bc6e226a654377be88f2d1d955a6fb298f0f55b9cd945096acacb2fc
@@ -133,7 +145,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: latest
-    created: "2025-03-28T16:18:44.378620389Z"
+    created: "2025-03-31T15:42:32.197137789Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: 03046c0bcd2fac00e76c6b362ab5bc48263ae2f18647242f817840944a00ae0e
@@ -142,4 +154,4 @@ entries:
     urls:
     - https://tomf141.github.io/helmcharts/tautulli-0.1.2.tgz
     version: 0.1.2
-generated: "2025-03-28T16:18:44.371465028Z"
+generated: "2025-03-31T15:42:32.189589781Z"

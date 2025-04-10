@@ -73,16 +73,22 @@ spec:
         - name: plexmedia-nfs
           mountPath: /zpool/plexmedia
         {{- end }}
+        {{- /* Wrap entire list item in if */}}
+        {{- if .Values.persistence.download.enabled }}
         - name: download-temp
           mountPath: /download-temp
+        {{- end }}
 
       volumes:
       - name: qbittorrent-config
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.config.existingClaim }}
+      {{- /* Wrap entire list item in if */}}
+      {{- if .Values.persistence.download.enabled }}
       - name: download-temp
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.download.existingClaim }}
+      {{- end }}
       {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
       - name: plexmedia-nfs
         nfs:

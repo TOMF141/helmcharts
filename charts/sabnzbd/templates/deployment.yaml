@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sabnzbd.fullname" . }}
+  namespace: {{ .Values.namespace }} # Use namespace from values
+  labels:
+    # Explicit standard labels
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
+    # Add labels directly from values
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  # Removed annotations block
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      # Explicit selector matching qBittorrent
+      io.kompose.service: {{ .Values.labels.io\.kompose\.service | default (include "sabnzbd.name" .) }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        # Explicit standard labels
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
+        # Add labels directly from values
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      # Removed podAnnotations block for simplicity
+    spec:
+      hostname: {{ .Values.hostname | quote }}
+{{- with .Values.nodeSelector }}
+      nodeSelector:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.tolerations }}
+      tolerations:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.affinity }}
+      affinity:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+{{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+{{- end }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              protocol: TCP
+              name: http
+          resources:
+{{- toYaml .Values.resources | nindent 12 }}
+{{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+              - /usr/bin/env
+              - bash
+              - -c
+              - curl --fail localhost:{{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+{{- end }}
+          volumeMounts:
+{{- if .Values.persistence.config.enabled }}
+            - name: sabnzbd-config
+              mountPath: {{ .Values.persistence.config.mountPath }}
+{{- end }}
+{{- if .Values.nfs.plexmedia.enabled }}
+            - name: plexmedia-nfs
+              mountPath: {{ .Values.nfs.plexmedia.mountPath }}
+              readOnly: {{ .Values.nfs.plexmedia.readOnly | default false }}
+{{- end }}
+{{- if .Values.nfs.download.enabled }}
+            - name: download-temp
+              mountPath: {{ .Values.nfs.download.mountPath }}
+              readOnly: {{ .Values.nfs.download.readOnly | default false }}
+{{- end }}
+      volumes:
+{{- if .Values.persistence.config.enabled }}
+        - name: sabnzbd-config
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.config.existingClaim }}
+{{- end }}
+{{- if .Values.nfs.download.enabled }}
+        - name: download-temp
+          nfs:
+            server: {{ .Values.nfs.download.server }}
+            path: {{ .Values.nfs.download.path }}
+            readOnly: {{ .Values.nfs.download.readOnly | default false }}
+{{- end }}
+{{- if .Values.nfs.plexmedia.enabled }}
+        - name: plexmedia-nfs
+          nfs:
+            server: {{ .Values.nfs.plexmedia.server }}
+            path: {{ .Values.nfs.plexmedia.path }}
+            readOnly: {{ .Values.nfs.plexmedia.readOnly | default false }}
+{{- end }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

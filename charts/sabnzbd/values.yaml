@@ -1,0 +1,94 @@
+# nameOverride: ""
+# fullnameOverride: ""
+
+image:
+  repository: lscr.io/linuxserver/sabnzbd
+  tag: "latest"
+  pullPolicy: Always
+
+replicaCount: 1
+
+# Additional labels for resources
+labels:
+  app: sabnzbd
+  version: latest # Corresponds to image tag by default
+  io.kompose.service: sabnzbd
+
+# Environment variables
+env:
+  UMASK: "000"
+  DOCKER_MODS: "ghcr.io/gilbn/theme.park:sabnzbd"
+  TP_THEME: "space-gray"
+  # TZ: "Europe/London"
+  # PUID: "1000"
+  # PGID: "1000"
+
+  # Liveness probe
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+  # command: ["curl", "--fail", "localhost:8080"] # Example command structure
+
+  # Service config
+service:
+  type: ClusterIP
+  port: 8080
+  # annotations: {}
+
+  # Resource requests & limits
+resources:
+  limits:
+    cpu: "2"
+    memory: 5Gi
+  requests:
+    cpu: "1"
+    memory: 2Gi
+
+# Node scheduling
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Persistence for Sabnzbd config (/config)
+persistence:
+  config:
+    enabled: true
+    # Set existingClaim to use an existing PVC
+    existingClaim: "sabnzbd-config"
+    # If existingClaim is not set, a new PVC can be created
+    # size: 1Gi
+    # storageClass: ""
+    mountPath: /config # Default mount path for config
+
+# NFS volume mounts
+nfs:
+  download:
+    enabled: true
+    server: "10.3.200.252"
+    path: "/mnt/download/sabnzbd"
+    mountPath: /download-temp # Mount path inside the container
+    # readOnly: false
+  plexmedia:
+    enabled: true
+    server: "10.3.200.151"
+    path: "/mnt/zpool/plexmedia"
+    mountPath: /zpool/plexmedia # Mount path inside the container
+    # readOnly: false
+
+    # Hostname override
+hostname: sabnzbd
+
+# Annotations for the Pod metadata (e.g., for Velero)
+podAnnotations:
+  backup.velero.io/backup-volumes-excludes: "plexmedia-nfs,download-temp"
+  # key: value
+
+  # Annotations for the Deployment metadata
+deploymentAnnotations: {} # key: value
+
+# Namespace to deploy into (matches qBittorrent style)
+namespace: download

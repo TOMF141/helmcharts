@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sabnzbd.fullname" . }}
+  namespace: {{ .Values.namespace }} # Use namespace from values
+  labels:
+    # Explicit standard labels only, to avoid linting issues
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
+    # Removed inclusion of .Values.labels due to persistent linting errors
+  # Removed annotations block for simplicity
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http # Use explicit name like deployment
+      port: {{ .Values.service.port }}
+      targetPort: http # Target the named port 'http' in the deployment
+      protocol: TCP
+  selector:
+    # Explicit selector matching qBittorrent
+    io.kompose.service: {{ .Values.labels.io\.kompose\.service | default (include "sabnzbd.name" .) }}

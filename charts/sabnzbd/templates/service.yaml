@@ -17,5 +17,5 @@ spec:
       targetPort: http # Target the named port 'http' in the deployment
       protocol: TCP
   selector:
-    # Explicit selector matching qBittorrent
-    io.kompose.service: {{ .Values.labels.io\.kompose\.service | default (include "sabnzbd.name" .) }}
+    # Explicit selector matching qBittorrent, using index for key with dots
+    io.kompose.service: {{ index .Values.labels "io.kompose.service" | default (include "sabnzbd.name" .) }}

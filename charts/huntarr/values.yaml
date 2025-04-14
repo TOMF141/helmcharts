@@ -1,0 +1,116 @@
+# Default values for huntarr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: huntarr/4sonarr
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {} # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8988
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Huntarr specific configuration
+# Corresponds to environment variables in the Docker Compose
+# You can provide configuration either via the 'config' map below,
+# OR by referencing an existing secret using 'configSecretName'.
+# If 'configSecretName' is set, the 'config' map below is ignored.
+
+# Option 1: Define configuration directly in values.yaml
+config:
+  # Required: Sonarr API Key (ignored if secretName is set)
+  apiKey: "your-api-key"
+  # Required: Sonarr API URL
+  apiUrl: "http://your-sonarr-address:8989" # IMPORTANT: Change this
+  apiTimeout: "60"
+  monitoredOnly: "true"
+  huntMissingShows: "1"
+  huntUpgradeEpisodes: "0"
+  sleepDuration: "900"
+  stateResetIntervalHours: "168"
+  debugMode: "false"
+  enableWebUi: "true"
+  skipFutureEpisodes: "true"
+  skipSeriesRefresh: "false"
+  commandWaitDelay: "1"
+  commandWaitAttempts: "600"
+  minimumDownloadQueueSize: "-1"
+  randomMissing: "true"
+  randomUpgrades: "true"
+
+# Persistence configuration
+persistence:
+  config:
+    enabled: true
+    # existingClaim: ""
+    # storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    # mountPath: /config # Default mount path from Docker image
+
+    # Secret management for the Sonarr API key
+    # If you want to use an existing Kubernetes secret for the API key:
+    # 1. Create a secret (e.g., kubectl create secret generic huntarr-secrets --from-literal=api-key='YOUR_SONARR_API_KEY')
+    # 2. Set secretName to the name of that secret (e.g., "huntarr-secrets")
+    # 3. Ensure secretApiKeyName matches the key within the secret (default is "api-key")
+secretName: "" # Name of the existing secret containing ONLY the API key. If set, config.apiKey is ignored. Use this OR configSecretName, not both.
+secretApiKeyName: "api-key" # The key within the secret specified by secretName that holds the API key.
+
+# Option 2: Use an existing secret for ALL configuration values
+# Create a secret with keys matching the environment variable names (e.g., API_KEY, API_URL, etc.)
+# Example: kubectl create secret generic huntarr-config-secret --from-literal=API_KEY='...' --from-literal=API_URL='...' ...
+configSecretName: "" # Name of the secret containing all configuration key-value pairs. If set, the 'config' map and 'secretName' above are ignored.

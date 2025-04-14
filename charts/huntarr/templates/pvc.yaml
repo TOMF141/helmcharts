@@ -1,0 +1,26 @@
+{{- if .Values.persistence.config.enabled }}
+apiVersion: {{ include "huntarr.persistentvolumeclaim.apiVersion" . }}
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "huntarr.fullname" . }}-config
+  labels:
+    {{- include "huntarr.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.config.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.config.size | quote }}
+  {{- if .Values.persistence.config.storageClass }}
+  {{- if (eq "-" .Values.persistence.config.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: {{ .Values.persistence.config.storageClass | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.persistence.config.existingClaim }}
+  # If you want to use an existing claim, uncomment the following lines
+  # and ensure the name matches your existing claim.
+  # volumeName: {{ .Values.persistence.config.existingClaim }}
+  {{- end }}
+{{- end }}

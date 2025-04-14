@@ -1,0 +1,113 @@
+apiVersion: {{ include "huntarr.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "huntarr.fullname" . }}
+  labels:
+    {{- include "huntarr.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "huntarr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "huntarr.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "huntarr.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.configSecretName }}
+          envFrom: # Use envFrom if configSecretName is set
+            - secretRef:
+                name: {{ .Values.configSecretName }}
+          {{- else }} # Otherwise, use individual env vars
+          env:
+            {{- if .Values.secretName }} # Use secretName only for API_KEY if configSecretName is not set
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretName }}
+                  key: {{ .Values.secretApiKeyName }}
+            {{- else }}
+            - name: API_KEY
+              value: {{ .Values.config.apiKey | quote }}
+            {{- end }}
+            - name: API_URL
+              value: {{ .Values.config.apiUrl | quote }}
+            - name: API_TIMEOUT
+              value: {{ .Values.config.apiTimeout | quote }}
+            - name: MONITORED_ONLY
+              value: {{ .Values.config.monitoredOnly | quote }}
+            - name: HUNT_MISSING_SHOWS
+              value: {{ .Values.config.huntMissingShows | quote }}
+            - name: HUNT_UPGRADE_EPISODES
+              value: {{ .Values.config.huntUpgradeEpisodes | quote }}
+            - name: SLEEP_DURATION
+              value: {{ .Values.config.sleepDuration | quote }}
+            - name: STATE_RESET_INTERVAL_HOURS
+              value: {{ .Values.config.stateResetIntervalHours | quote }}
+            - name: DEBUG_MODE
+              value: {{ .Values.config.debugMode | quote }}
+            - name: ENABLE_WEB_UI
+              value: {{ .Values.config.enableWebUi | quote }}
+            - name: SKIP_FUTURE_EPISODES
+              value: {{ .Values.config.skipFutureEpisodes | quote }}
+            - name: SKIP_SERIES_REFRESH
+              value: {{ .Values.config.skipSeriesRefresh | quote }}
+            - name: COMMAND_WAIT_DELAY
+              value: {{ .Values.config.commandWaitDelay | quote }}
+            - name: COMMAND_WAIT_ATTEMPTS
+              value: {{ .Values.config.commandWaitAttempts | quote }}
+            - name: MINIMUM_DOWNLOAD_QUEUE_SIZE
+              value: {{ .Values.config.minimumDownloadQueueSize | quote }}
+            - name: RANDOM_MISSING
+              value: {{ .Values.config.randomMissing | quote }}
+            - name: RANDOM_UPGRADES
+              value: {{ .Values.config.randomUpgrades | quote }}
+          {{- end }} # End of the 'else' for configSecretName check
+          volumeMounts:
+            {{- if .Values.persistence.config.enabled }}
+            - name: config
+              mountPath: /config
+            {{- end }}
+            # Add other volume mounts here if needed
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- if .Values.persistence.config.enabled }}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ include "huntarr.fullname" . }}-config
+        {{- end }}
+        # Add other volumes here if needed
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -33,23 +33,20 @@ helm repo update
 
 | Chart | Description | Version |
 |-------|-------------|---------|
-| [autoscan](./charts/autoscan/) | A tool that automatically scans media libraries | 0.1.7 |
-| [prowlarr](./charts/prowlarr/) | An indexer manager/proxy for various torrent and Usenet indexers | 0.1.1 |
-| [qbittorrent](./charts/qbittorrent/) | A BitTorrent client used for downloading media | 0.1.0 |
-| [radarr](./charts/radarr/) | A movie collection manager for Usenet and BitTorrent users | 0.1.x |
-| [sonarr](./charts/sonarr/) | A TV series collection manager for Usenet and BitTorrent users | 0.1.x |
+| [autoscan](./charts/autoscan/) | A Helm chart to deploy autoscan | 0.1.8 |
+| [huntarr](./charts/huntarr/) | A Helm chart for Huntarr (4sonarr) | 0.1.0 |
+| [overseerr](./charts/overseerr/) | A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem | 0.1.0 |
+| [prowlarr](./charts/prowlarr/) | A Helm chart to deploy Prowlarr | 0.1.2 |
+| [qbittorrent](./charts/qbittorrent/) | A Helm chart to deploy qBittorrent | 0.1.0 |
+| [radarr](./charts/radarr/) | A Helm chart to deploy Radarr | 0.1.4 |
+| [sabnzbd](./charts/sabnzbd/) | A Helm chart for Sabnzbd Usenet downloader | 0.1.1 |
+| [sonarr](./charts/sonarr/) | A Helm chart to deploy Sonarr | 0.1.6 |
 
 ### Monitoring
 
 | Chart | Description | Version |
 |-------|-------------|---------|
-| [tautulli](./charts/tautulli/) | A monitoring and tracking tool for Plex Media Server | 0.1.1 |
-
-### Database
-
-| Chart | Description | Version |
-|-------|-------------|---------|
-| [supabase](./charts/supabase/) | An open-source Firebase alternative | 0.1.x |
+| [tautulli](./charts/tautulli/) | A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server | 0.1.6 |
 
 ## Usage
 

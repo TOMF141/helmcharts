@@ -41,7 +41,7 @@ livenessProbe:
   initialDelaySeconds: 30
   periodSeconds: 60
   command: |
-    curl --fail localhost:9696/prowlarrkube/api/v3/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
+    curl --fail localhost:9696/api/v3/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
 
 # ------------------------------------------------------------------------------
 # Service config

@@ -2,5 +2,17 @@ apiVersion: v2
 name: autoscan
 description: A Helm chart to deploy autoscan
 type: application
-version: 0.1.8
+version: 0.1.9
 appVersion: "1.0.0"
+
+keywords:
+- autoscan
+- plex
+- emby
+- jellyfin
+- scanner
+
+home: https://github.com/Cloudbox/autoscan # Assuming this is the project home
+sources:
+- https://github.com/Cloudbox/autoscan # Assuming this is the source repo
+- https://hub.docker.com/r/cloudb0x/autoscan # Docker image source

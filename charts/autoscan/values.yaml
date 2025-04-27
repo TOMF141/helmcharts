@@ -1,35 +1,107 @@
-# ------------------------------------------------------------------------------
-# Name and fullname override
-# ------------------------------------------------------------------------------
-# nameOverride: ""
-# fullnameOverride: ""
+# Default values for autoscan.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
-# ------------------------------------------------------------------------------
-# Namespace
-# ------------------------------------------------------------------------------
-namespace: default
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
 
-# ------------------------------------------------------------------------------
-# Image configuration
-# ------------------------------------------------------------------------------
-image:
-  repository: cloudb0x/autoscan
-  tag: latest
-  pullPolicy: IfNotPresent
-
-# ------------------------------------------------------------------------------
-# Labels you want to add to your resources
-# ------------------------------------------------------------------------------
-labels: {}
-
-# ------------------------------------------------------------------------------
-# Replicas
-# ------------------------------------------------------------------------------
+# -- Number of replicas for the deployment.
 replicaCount: 1
 
-# ------------------------------------------------------------------------------
-# Resource requests & limits
-# ------------------------------------------------------------------------------
+image:
+  # -- Container image repository.
+  repository: cloudb0x/autoscan
+  # -- Container image pull policy.
+  pullPolicy: IfNotPresent
+  # -- Container image tag. Defaults to .Chart.AppVersion.
+  tag: ""
+
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod.
+podLabels: {}
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
+
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+service:
+  # -- Kubernetes service type.
+  type: ClusterIP
+  # -- Service port.
+  port: 3030
+  # -- Service target port. Defaults to the service port.
+  targetPort: 3030
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
+
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: autoscan.local # Change this
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: autoscan-tls
+  #    hosts:
+  #      - autoscan.local
+
+  # -- Resource requests and limits.
+  # See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 resources:
   limits:
     cpu: 50m
@@ -38,25 +110,152 @@ resources:
     cpu: 10m
     memory: 64Mi
 
-# ------------------------------------------------------------------------------
-# Node scheduling
-# ------------------------------------------------------------------------------
+# -- Liveness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  enabled: true
+  type: httpGet # Options: httpGet, tcpSocket, exec
+  path: / # Adjust if autoscan has a specific health endpoint
+  port: { ? { .Values.service.port } } # Use the service port
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+  # For exec type:
+  # command:
+  #   - cat
+  #   - /tmp/healthy
+
+  # -- Readiness probe configuration.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: true
+  type: httpGet # Options: httpGet, tcpSocket, exec
+  path: / # Adjust if autoscan has a specific ready endpoint
+  port: { ? { .Values.service.port } } # Use the service port
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+  # For exec type:
+  # command:
+  #   - cat
+  #   - /tmp/ready
+
+  # -- Persistence configuration. Defines volumes and mounts.
+  # See https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+persistence:
+  config:
+    # -- Enable persistence for config volume.
+    enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /config # Default for many containers
+    # -- SubPath within the volume to mount.
+    # subPath: ""
+    # -- Mount read-only.
+    # readOnly: false
+
+    # -- PVC specific settings (ignored if type is not pvc)
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
+    size: 500Mi
+    # -- Storage class for the PVC. If "", uses default.
+    storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+    # -- hostPath specific settings (ignored if type is not hostPath)
+    # path: /path/on/host
+    # hostPathType: DirectoryOrCreate
+
+    # -- emptyDir specific settings (ignored if type is not emptyDir)
+    # medium: "" # Memory or ""
+    # sizeLimit: ""
+
+    # -- NFS specific settings (ignored if type is not nfs)
+    # server: nfs.example.com
+    # path: /exported/path
+
+    # -- iSCSI specific settings (ignored if type is not iscsi)
+    # targetPortal: 1.2.3.4:3260
+    # iqn: iqn.2001-04.com.example:storage.kube.sys1.xyz
+    # lun: 0
+    # fsType: ext4
+    # secretRef: "" # Name of secret for CHAP authentication
+
+  database:
+    # -- Enable persistence for database volume.
+    enabled: true
+    # -- Type of volume.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /database # Assuming this path for autoscan db
+    # subPath: ""
+    # readOnly: false
+
+    # -- PVC specific settings
+    accessModes:
+    - ReadWriteOnce
+    size: 500Mi
+    storageClass: ""
+    existingClaim: ""
+    # -- hostPath specific settings
+    # path: /path/on/host/db
+    # hostPathType: DirectoryOrCreate
+
+    # -- emptyDir specific settings
+    # medium: ""
+    # sizeLimit: ""
+
+    # -- NFS specific settings
+    # server: nfs.example.com
+    # path: /exported/path/db
+
+    # -- iSCSI specific settings
+    # targetPortal: 1.2.3.4:3260
+    # iqn: iqn.2001-04.com.example:storage.kube.sys1.db
+    # lun: 1
+    # fsType: ext4
+    # secretRef: ""
+
+    # -- Node selector configuration.
+    # See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 nodeSelector: {}
+
+# -- Tolerations configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
 tolerations: []
+
+# -- Affinity configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
 affinity: {}
 
-# ------------------------------------------------------------------------------
-# Config section
-# ------------------------------------------------------------------------------
-config:
-  # If non-empty, the chart will skip creating a new config secret
-  # and reference the specified existing secret name for config.yml.
-  existingSecret: ""
+# -- Environment variables passed directly to the container.
+# See https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
+env: {}
+  # TZ: Europe/London
+  # PUID: 1000
+  # PGID: 1000
+  # UMASK: "002"
 
-  # The "template-driven" config parameters.
+# -- Environment variables sourced from ConfigMaps or Secrets.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# -- Application specific configuration (non-sensitive).
+# These values are typically used to render a config file or passed as env vars.
+appConfig:
+  # -- Corresponds to config.yml content (non-sensitive parts)
   minimumAge: "5m"
   scanDelay: "30s"
-  port: 3030
+  # port: 3030 # Port is now primarily controlled by service.port
 
   triggers:
     lidarr:
@@ -71,31 +270,25 @@ config:
 
   targets:
     plex:
+      # -- URL for the Plex target.
       url: ""
-      token: "" # Used if useTokenSecret is false
-      useTokenSecret: false # If true, we’ll do a placeholder in config.yml
-      tokenSecret:
-        name: "my-plex-token-secret"
-        key: "token"
 
-# ------------------------------------------------------------------------------
-# Persistence
-# ------------------------------------------------------------------------------
-persistence:
-  conf:
-    enabled: true
-    size: 500Mi
-    existingClaim: ""
-    storageClass: ""
-  database:
-    enabled: true
-    size: 500Mi
-    existingClaim: ""
-    storageClass: ""
+# -- Application specific configuration (sensitive).
+# These values are typically used to render a config file or passed as env vars.
+# Values can be provided directly or referenced from existing secrets.
+secretConfig:
+  # -- Set to the name of an existing secret containing the full config.yml content. If set, the chart will not render its own config.
+  existingSecretName: "" # Corresponds to old 'config.existingSecret'
+  # -- The key within the existing secret that holds the config.yml content.
+  existingSecretKey: "config.yml"
 
-# ------------------------------------------------------------------------------
-# Service configuration
-# ------------------------------------------------------------------------------
-service:
-  type: ClusterIP
-  port: 3030
+  # -- If existingSecretName is not set, the following values are used to render config.yml into a new secret.
+  targets:
+    plex:
+      # -- Plex token. Provide directly OR via tokenSecretRef.
+      token: "" # Sensitive value, will be stored in the chart-managed secret.
+      # -- Reference to an existing secret containing only the Plex token.
+      # If provided, secretConfig.targets.plex.token is ignored.
+      tokenSecretRef:
+        # name: "my-plex-token-secret" # Corresponds to old 'config.targets.plex.tokenSecret.name'
+        # key: "token" # Corresponds to old 'config.targets.plex.tokenSecret.key'

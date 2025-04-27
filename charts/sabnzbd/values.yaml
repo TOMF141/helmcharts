@@ -1,45 +1,124 @@
-# nameOverride: ""
-# fullnameOverride: ""
+# Default values for sabnzbd.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
+
+# ------------------------------------------------------------------------------
+# Image configuration
+# ------------------------------------------------------------------------------
 image:
   repository: lscr.io/linuxserver/sabnzbd
   tag: "latest"
   pullPolicy: Always
 
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
+# ------------------------------------------------------------------------------
+# Number of replicas
+# ------------------------------------------------------------------------------
 replicaCount: 1
 
-# Additional labels for resources
-labels:
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate # Default strategy
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+
+# ------------------------------------------------------------------------------
+# Service Account
+# ------------------------------------------------------------------------------
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations:
+  backup.velero.io/backup-volumes-excludes: "plexmedia-nfs,download-temp" # Keep existing annotation
+  # key: value
+  # -- Labels to add to the pod. (Original 'labels' moved here)
+podLabels:
   app: sabnzbd
   version: latest # Corresponds to image tag by default
-  io.kompose.service: sabnzbd
+  io.kompose.service: sabnzbd # Keep existing label
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {} # key: value
 
-# Environment variables
-env:
-  UMASK: "000"
-  DOCKER_MODS: "ghcr.io/gilbn/theme.park:sabnzbd"
-  TP_THEME: "space-gray"
-  # TZ: "Europe/London"
-  # PUID: "1000"
-  # PGID: "1000"
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
 
-  # Liveness probe
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 30
-  periodSeconds: 60
-  timeoutSeconds: 1
-  failureThreshold: 3
-  successThreshold: 1
-  # command: ["curl", "--fail", "localhost:8080"] # Example command structure
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
 
-  # Service config
+# ------------------------------------------------------------------------------
+# Service config
+# ------------------------------------------------------------------------------
 service:
+  # -- Kubernetes service type.
   type: ClusterIP
+  # -- Service port.
   port: 8080
-  # annotations: {}
+  # -- Service target port. Defaults to the service port.
+  targetPort: 8080
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
 
+# ------------------------------------------------------------------------------
+# Ingress config
+# ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: sabnzbd.local # Placeholder: Change this
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: sabnzbd-tls
+  #    hosts:
+  #      - sabnzbd.local
+
+  # ------------------------------------------------------------------------------
   # Resource requests & limits
+  # ------------------------------------------------------------------------------
 resources:
   limits:
     cpu: "2"
@@ -48,47 +127,147 @@ resources:
     cpu: "1"
     memory: 2Gi
 
-# Node scheduling
+# ------------------------------------------------------------------------------
+# Liveness probe
+# ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  type: httpGet # Using standard httpGet probe for SABnzbd
+  path: /api?mode=version # Standard SABnzbd API check path
+  port: http # References service.port name (8080)
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  timeoutSeconds: 5 # Adjusted timeout from original
+  failureThreshold: 3
+  # successThreshold: 1 # Default is 1
+
+  # -- Readiness probe configuration. Disabled by default.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: false
+  # type: httpGet
+  # path: /api?mode=version
+  # port: http
+  # initialDelaySeconds: 15
+  # periodSeconds: 15
+  # timeoutSeconds: 5
+  # failureThreshold: 3
+
+  # ------------------------------------------------------------------------------
+  # Persistence
+  # ------------------------------------------------------------------------------
+persistence:
+  config:
+    # -- Enable persistence for config volume.
+    enabled: true
+    # -- Type of volume.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /config
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC (only used if existingClaim is empty).
+    # size: 1Gi
+    # -- Storage class for the PVC. If "", uses default (only used if existingClaim is empty).
+    # storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: "sabnzbd-config"
+  download:
+    # -- Enable persistence for download volume.
+    enabled: true
+    # -- Type of volume.
+    type: nfs
+    # -- Mount path inside the container.
+    mountPath: /download-temp
+    # -- NFS specific settings
+    server: "10.3.200.252"
+    path: "/mnt/download/sabnzbd"
+    # readOnly: false
+  plexmedia:
+    # -- Enable persistence for plexmedia volume.
+    enabled: true
+    # -- Type of volume.
+    type: nfs
+    # -- Mount path inside the container.
+    mountPath: /zpool/plexmedia
+    # -- NFS specific settings
+    server: "10.3.200.151"
+    path: "/mnt/zpool/plexmedia"
+    # readOnly: false
+
+    # ------------------------------------------------------------------------------
+    # Node scheduling
+    # ------------------------------------------------------------------------------
 nodeSelector: {}
 tolerations: []
 affinity: {}
 
-# Persistence for Sabnzbd config (/config)
-persistence:
-  config:
-    enabled: true
-    # Set existingClaim to use an existing PVC
-    existingClaim: "sabnzbd-config"
-    # If existingClaim is not set, a new PVC can be created
-    # size: 1Gi
-    # storageClass: ""
-    mountPath: /config # Default mount path for config
-
-# NFS volume mounts
-nfs:
-  download:
-    enabled: true
-    server: "10.3.200.252"
-    path: "/mnt/download/sabnzbd"
-    mountPath: /download-temp # Mount path inside the container
-    # readOnly: false
-  plexmedia:
-    enabled: true
-    server: "10.3.200.151"
-    path: "/mnt/zpool/plexmedia"
-    mountPath: /zpool/plexmedia # Mount path inside the container
-    # readOnly: false
-
-    # Hostname override
+# ------------------------------------------------------------------------------
+# Hostname override
+# ------------------------------------------------------------------------------
 hostname: sabnzbd
 
-# Annotations for the Pod metadata (e.g., for Velero)
-podAnnotations:
-  backup.velero.io/backup-volumes-excludes: "plexmedia-nfs,download-temp"
-  # key: value
+# ------------------------------------------------------------------------------
+# Environment variables
+# ------------------------------------------------------------------------------
+env:
+  # TZ: "Europe/London"
+  # PUID: "1000"
+  # PGID: "1000"
+  UMASK: "000"
+  DOCKER_MODS: "ghcr.io/gilbn/theme.park:sabnzbd"
+  TP_THEME: "space-gray"
 
-  # Annotations for the Deployment metadata
-deploymentAnnotations: {} # key: value
+# -- Environment variables sourced from ConfigMaps or Secrets.
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
 
-# Namespace to deploy into (matches qBittorrent style)
-namespace: download
+# ------------------------------------------------------------------------------
+# Application specific configuration (non-sensitive - for sabnzbd.ini)
+# ------------------------------------------------------------------------------
+# These values will be used to render the sabnzbd.ini file in the secret.
+# Refer to sabnzbd documentation for all available options.
+# Example: Add common settings you want to manage via Helm values.
+appConfig:
+  misc:
+    web_color: "space-gray" # Matches TP_THEME env var
+    # api_key: "" # Use secretConfig for sensitive values
+    # nzb_key: "" # Use secretConfig for sensitive values
+    # download_dir: /download-temp # Map to persistence mountPath if needed
+    # complete_dir: /zpool/plexmedia/downloads/complete # Map to persistence mountPath if needed
+  servers:
+    # Define server sections here if you want to manage them via Helm
+    # server1:
+    #   name: news.example.com
+    #   host: news.example.com
+    #   port: 119
+    #   username: "" # Use secretConfig
+    #   password: "" # Use secretConfig
+    #   connections: 10
+    #   enable: 1
+
+    # ------------------------------------------------------------------------------
+    # Application specific configuration (sensitive - for sabnzbd.ini)
+    # ------------------------------------------------------------------------------
+secretConfig:
+  # -- Set to the name of an existing secret containing the full sabnzbd.ini content.
+  # If set, the chart will not render its own sabnzbd.ini secret.
+  # existingSecretName: ""
+  # -- The key within the existing secret that holds the sabnzbd.ini content.
+  # existingSecretKey: "sabnzbd.ini"
+
+  # -- SABnzbd API Key. If existingSecretName is not set, this will be used.
+  # If left empty, SABnzbd might generate one on first start.
+  apiKey: ""
+  # -- SABnzbd NZB Key. If existingSecretName is not set, this will be used.
+  # If left empty, SABnzbd might generate one on first start.
+  nzbKey: ""
+  # -- Define sensitive server details here if managing servers via Helm
+  # servers:
+  #   server1:
+  #     username: ""
+  #     password: ""

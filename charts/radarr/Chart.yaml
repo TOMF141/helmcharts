@@ -4,3 +4,16 @@ description: A Helm chart to deploy Radarr
 type: application
 version: 0.1.4
 appVersion: "4.0.0"
+
+keywords:
+- radarr
+- movies
+- download
+- usenet
+- bittorrent
+
+home: https://radarr.video/
+sources:
+- https://github.com/Radarr/Radarr
+- https://github.com/linuxserver/docker-radarr # Source for the specific image used
+- https://lscr.io/linuxserver/radarr # Image source

@@ -1,97 +1,205 @@
-apiVersion: apps/v1
+apiVersion: {{ include "appname.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ include "radarr.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  name: {{ include "appname.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: radarr
-    {{- include "radarr.labels" . | nindent 4 }}
+    {{- include "appname.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/name: radarr
+      {{- include "appname.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    {{- toYaml .Values.strategy | nindent 4 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/name: radarr
-        app: {{ include "radarr.fullname" . }}
-        {{- include "radarr.labels" . | nindent 8 }}
+        {{- include "appname.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "appname.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostname }}
       hostname: {{ .Values.hostname | quote }}
-      nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
-      tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
-      affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
-
+      {{- end }}
       containers:
-      - name: radarr
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-        - name: UMASK
-          value: {{ .Values.env.UMASK | quote }}
-        ports:
-        - containerPort: 7878
-          protocol: TCP
-        resources:
-          limits:
-            memory: {{ .Values.resources.limits.memory }}
-          requests:
-            cpu: {{ .Values.resources.requests.cpu }}
-            memory: {{ .Values.resources.requests.memory }}
-        {{- if .Values.livenessProbe.enabled }}
-        livenessProbe:
-          exec:
-            command:
-            - /usr/bin/env
-            - bash
-            - -c
-            - {{ .Values.livenessProbe.command | quote }}
-          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-        {{- end }}
-        volumeMounts:
-        - name: radarr-config
-          mountPath: /config
-        - name: radarr-xml
-          mountPath: /tmp/config-xml
-          readOnly: true
-        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-        - name: plexmedia-nfs
-          mountPath: /zpool/plexmedia
-        {{- end }}
-        lifecycle:
-          postStart:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http # Matches service port name
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- /* Use exec probe for radarr API check */}}
             exec:
               command:
-              - /bin/sh
+              - /usr/bin/env
+              - bash
               - -c
-              - |
-                # Copy our generated or existing config.xml from secret to /config
-                cp /tmp/config-xml/config.xml /config/config.xml
-
+              - {{ .Values.livenessProbe.command | quote }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 10 }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+            successThreshold: 1
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: http # Ensure this matches the port name above
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: http # Ensure this matches the port name above
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- /* Mount the config PVC */}}
+            {{- range $key, $value := .Values.persistence }}
+            {{- if and $value.enabled (eq $key "config") }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- /* Mount config.xml from secret into the config volume mount */}}
+            {{- if not .Values.secretConfig.existingSecretName }}
+            - name: config # Mount to the same volume as the PVC
+              mountPath: /config/config.xml # Mount directly as config.xml
+              subPath: config.xml           # Use the key from the secret
+              readOnly: false # Needs to be writable initially if Radarr modifies it? Check Radarr behavior. Usually false is safer.
+            {{- end }}
+            {{- /* Mount other non-config PVCs */}}
+            {{- range $key, $value := .Values.persistence }}
+            {{- if and $value.enabled (ne $key "config") }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- /* Mount NFS volume */}}
+            {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+            - name: nfs-media
+              mountPath: {{ .Values.nfs.mountPath | default "/mnt/nfs/media" }}
+            {{- end }}
       volumes:
-      - name: radarr-config
-        persistentVolumeClaim:
-          claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "radarr.fullname" . }}-config{{- end }}
-
-      - name: radarr-xml
-        secret:
-          secretName:{{- if .Values.configXml.existingSecret }} {{ .Values.configXml.existingSecret }}{{- else }} {{ include "radarr.fullname" . }}-xml{{- end }}
-
-      {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-      - name: plexmedia-nfs
-        nfs:
-          server: {{ .Values.nfs.server }}
-          path: {{ .Values.nfs.path }}
+        {{- /* Define PVC volumes */}}
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "appname.fullname" $) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- /* Define config.xml secret volume only if not using existingSecretName */}}
+        {{- if not .Values.secretConfig.existingSecretName }}
+        - name: config # Use the same name as the PVC volume for the mount
+          secret:
+            secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
+            items:
+              - key: config.xml # Key defined in secret.yaml
+                path: config.xml # Path within the secret volume mount
+        {{- end }}
+        {{- /* Define NFS volume */}}
+        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+        - name: nfs-media
+          nfs:
+            server: {{ .Values.nfs.server }}
+            path: {{ .Values.nfs.path }}
+            # readOnly: true # Add if needed
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-
-      restartPolicy: Always
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

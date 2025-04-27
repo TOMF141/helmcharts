@@ -4,3 +4,14 @@ description: A Helm chart to deploy Overseerr - a request management and media d
 type: application
 version: 0.1.0
 appVersion: "latest"
+
+keywords:
+- overseerr
+- plex
+- requests
+- media
+
+home: https://overseerr.dev/
+sources:
+- https://github.com/sct/overseerr
+- https://hub.docker.com/r/sctx/overseerr

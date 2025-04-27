@@ -1,26 +1,39 @@
-{{- $name := include "huntarr.fullname" . -}}
+{{- $fullName := include "huntarr.fullname" . -}}
 {{- $servicePort := .Values.service.port -}}
+{{- $chartName := include "huntarr.name" . }}
 
-Huntarr has been deployed.
+{{ $chartName | title }} has been deployed.
 
-{{- if contains "NodePort" .Values.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $name }})
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $fullName }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo "Access Huntarr web UI at: http://$NODE_IP:$NODE_PORT"
 {{- else if contains "LoadBalancer" .Values.service.type }}
-  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-        You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ $name }}'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $name }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ $fullName }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $fullName }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo "Access Huntarr web UI at: http://$SERVICE_IP:{{ $servicePort }}"
 {{- else if contains "ClusterIP" .Values.service.type }}
-  Get the Huntarr URL by running these commands:
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "huntarr.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ $chartName }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:{{ $servicePort }}
 {{- end }}
 
-**IMPORTANT:**
+{{- range $key, $value := .Values.persistence }}
+{{- if and $value.enabled (eq $value.type "pvc") }}
+{{ $key | title }} data is persisted to the PVC named '{{ $value.existingClaim | default (printf "%s-%s" $fullName $key) }}'.
+{{- end }}
+{{- end }}
+
+**IMPORTANT Huntarr Configuration:**
 *   Configuration Method:
-    *   **Option 1 (values.yaml):** Ensure `config.apiKey` and `config.apiUrl` are set in `values.yaml`. You can optionally use `secretName` just for the API key.
-    *   **Option 2 (Existing Secret):** Set `configSecretName` in `values.yaml` to the name of a secret containing all required environment variables (e.g., `API_KEY`, `API_URL`). If `configSecretName` is set, the `config` map and `secretName` in `values.yaml` are ignored.
+    *   **Option 1 (values.yaml):** Ensure `appConfig.apiUrl` and `secretConfig.apiKey` are set correctly in `values.yaml`. You can optionally use `secretConfig.secretName` to reference an existing secret just for the API key.
+    *   **Option 2 (Existing Secret):** Set `secretConfig.configSecretName` in `values.yaml` to the name of a secret containing all required environment variables (e.g., `API_KEY`, `API_URL`). If `configSecretName` is set, the `appConfig` map and `secretConfig.apiKey`/`secretConfig.secretName` in `values.yaml` are ignored.
 *   Persistence: Ensure the persistent volume for `/config` is correctly set up if `persistence.config.enabled` is true.

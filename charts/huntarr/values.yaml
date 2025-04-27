@@ -2,48 +2,107 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
+
+# -- Number of replicas for the deployment.
 replicaCount: 1
 
 image:
+  # -- Container image repository.
   repository: huntarr/4sonarr
+  # -- Container image pull policy.
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  # -- Container image tag. Defaults to .Chart.AppVersion.
+  tag: "" # Defaults to .Chart.AppVersion if empty
 
+# -- Optional list of image pull secrets.
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created.
   create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
   name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
 
+# -- Annotations to add to the pod.
 podAnnotations: {}
+# -- Labels to add to the pod.
+podLabels: {}
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
 
-podSecurityContext: {} # fsGroup: 2000
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
 
-securityContext: {}
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
   # capabilities:
   #   drop:
-  #   - ALL
+  #     - ALL
   # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
   # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
 
 service:
+  # -- Kubernetes service type.
   type: ClusterIP
+  # -- Service port.
   port: 8988
+  # -- Service target port. Defaults to the service port.
+  targetPort: 8988 # Should match the container port Huntarr listens on
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
 
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: huntarr.local # Placeholder: Adjust host
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: huntarr-tls
+  #    hosts:
+  #      - huntarr.local
+
+  # -- Resource requests and limits.
+  # See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -51,29 +110,91 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+# -- Liveness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Huntarr has a web UI if enabled, '/' might work. Adjust if needed.
+livenessProbe:
+  enabled: true
+  type: httpGet
+  path: /
+  port: http # References service.port name (should be 8988)
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
 
+# -- Readiness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Huntarr has a web UI if enabled, '/' might work. Adjust if needed.
+readinessProbe:
+  enabled: true
+  type: httpGet
+  path: /
+  port: http # References service.port name (should be 8988)
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Persistence configuration. Defines volumes and mounts.
+# See https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+persistence:
+  config:
+    # -- Enable persistence for config volume.
+    enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /config # Default mount path from Huntarr Docker image
+    # -- SubPath within the volume to mount.
+    # subPath: ""
+    # -- Mount read-only.
+    # readOnly: false
+
+    # -- PVC specific settings (ignored if type is not pvc)
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
+    size: 1Gi
+    # -- Storage class for the PVC. If "", uses default.
+    storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+
+# -- Node selector configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
 nodeSelector: {}
 
+# -- Tolerations configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
 tolerations: []
 
+# -- Affinity configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
 affinity: {}
 
-# Huntarr specific configuration
-# Corresponds to environment variables in the Docker Compose
-# You can provide configuration either via the 'config' map below,
-# OR by referencing an existing secret using 'configSecretName'.
-# If 'configSecretName' is set, the 'config' map below is ignored.
+# -- Environment variables passed directly to the container.
+# See https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
+# Huntarr configuration is primarily handled via appConfig/secretConfig below.
+env: {}
+  # TZ: Europe/London
+  # PUID: 1000 # Huntarr runs as root by default, PUID/PGID might not apply directly
+  # PGID: 1000
+  # UMASK: "002"
 
-# Option 1: Define configuration directly in values.yaml
-config:
-  # Required: Sonarr API Key (ignored if secretName is set)
-  apiKey: "your-api-key"
+# -- Environment variables sourced from ConfigMaps or Secrets.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+# Huntarr configuration is primarily handled via appConfig/secretConfig below.
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# -- Huntarr specific configuration (non-sensitive).
+# Corresponds to environment variables. These are used unless configSecretName is set.
+appConfig:
   # Required: Sonarr API URL
   apiUrl: "http://your-sonarr-address:8989" # IMPORTANT: Change this
   apiTimeout: "60"
@@ -92,25 +213,23 @@ config:
   randomMissing: "true"
   randomUpgrades: "true"
 
-# Persistence configuration
-persistence:
-  config:
-    enabled: true
-    # existingClaim: ""
-    # storageClass: ""
-    accessMode: ReadWriteOnce
-    size: 1Gi
-    # mountPath: /config # Default mount path from Docker image
+# -- Huntarr specific configuration (sensitive).
+# Handles the Sonarr API Key. Choose ONE method:
+# 1. Provide apiKey directly (least secure).
+# 2. Use secretName to reference an existing secret containing ONLY the API key.
+# 3. Use configSecretName to reference an existing secret containing ALL config vars (including API_KEY).
+secretConfig:
+  # -- Method 1: Sonarr API Key (ignored if secretName or configSecretName is set)
+  apiKey: "your-api-key" # IMPORTANT: Change this or use a secret
 
-    # Secret management for the Sonarr API key
-    # If you want to use an existing Kubernetes secret for the API key:
-    # 1. Create a secret (e.g., kubectl create secret generic huntarr-secrets --from-literal=api-key='YOUR_SONARR_API_KEY')
-    # 2. Set secretName to the name of that secret (e.g., "huntarr-secrets")
-    # 3. Ensure secretApiKeyName matches the key within the secret (default is "api-key")
-secretName: "" # Name of the existing secret containing ONLY the API key. If set, config.apiKey is ignored. Use this OR configSecretName, not both.
-secretApiKeyName: "api-key" # The key within the secret specified by secretName that holds the API key.
+  # -- Method 2: Use an existing secret for the API key ONLY.
+  # Create secret: kubectl create secret generic huntarr-apikey-secret --from-literal=api-key='YOUR_KEY'
+  # -- Name of the existing secret containing ONLY the API key. If set, apiKey above is ignored.
+  secretName: ""
+  # -- The key within the secret specified by secretName that holds the API key.
+  secretApiKeyName: "api-key"
 
-# Option 2: Use an existing secret for ALL configuration values
-# Create a secret with keys matching the environment variable names (e.g., API_KEY, API_URL, etc.)
-# Example: kubectl create secret generic huntarr-config-secret --from-literal=API_KEY='...' --from-literal=API_URL='...' ...
-configSecretName: "" # Name of the secret containing all configuration key-value pairs. If set, the 'config' map and 'secretName' above are ignored.
+  # -- Method 3: Use an existing secret for ALL configuration values.
+  # Create secret: kubectl create secret generic huntarr-config-secret --from-literal=API_KEY='...' --from-literal=API_URL='...' ...
+  # -- Name of the secret containing all configuration key-value pairs (as env vars). If set, appConfig and apiKey/secretName above are ignored.
+  configSecretName: ""

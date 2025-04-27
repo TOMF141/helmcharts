@@ -2,14 +2,35 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "huntarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "huntarr.labels" . | nindent 4 }}
+    # Include standard labels defined in _helpers
+    {{- include "huntarr.labels" . | nindent 4 | trim }}
+    # Include extra labels defined globally in values.yaml
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    # Include service specific labels defined in values.yaml
+    {{- range $key, $value := .Values.service.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    # Include service specific annotations defined in values.yaml
+    {{- range $key, $value := .Values.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - name: http # Matches the port name in deployment.yaml probes
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default .Values.service.port }}
       protocol: TCP
-      name: http
+      {{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector:
-    {{- include "huntarr.selectorLabels" . | nindent 4 }}
+    # Selectors should only use the base selector labels
+    {{- include "huntarr.selectorLabels" . | nindent 4 | trim }}

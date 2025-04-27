@@ -4,3 +4,17 @@ description: A Helm chart for Huntarr (4sonarr)
 type: application
 version: 0.1.0 # Chart version
 appVersion: "latest" # Application version (matches image tag)
+
+keywords:
+- huntarr
+- sonarr
+- radarr
+- lidarr
+- readarr
+- whisparr
+
+home: https://github.com/huntarr/huntarr
+sources:
+- https://github.com/huntarr/huntarr
+
+# - https://ghcr.io/huntarr/huntarr # Placeholder for potential container image source

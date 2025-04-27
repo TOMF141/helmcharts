@@ -1,85 +1,185 @@
-apiVersion: apps/v1
+apiVersion: {{ include "prowlarr.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ include "prowlarr.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: prowlarr
     {{- include "prowlarr.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/name: prowlarr
+      {{- include "prowlarr.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    {{- toYaml .Values.strategy | nindent 4 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/name: prowlarr
-        {{- include "prowlarr.labels" . | nindent 8 }}
-    spec:
-      hostname: {{ .Values.hostname | quote }}
-      nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
-      tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
-      affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
-
-      containers:
-      - name: prowlarr
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-        - name: UMASK
-          value: {{ .Values.env.UMASK | quote }}
-        ports:
-        - containerPort: 9696
-          protocol: TCP
-        resources:
-          limits:
-            memory: {{ .Values.resources.limits.memory }}
-          requests:
-            cpu: {{ .Values.resources.requests.cpu }}
-            memory: {{ .Values.resources.requests.memory }}
-        {{- if .Values.livenessProbe.enabled }}
-        livenessProbe:
-          exec:
-            command:
-            - /usr/bin/env
-            - bash
-            - -c
-            - {{ .Values.livenessProbe.command | quote }}
-          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+        {{- include "prowlarr.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
-        volumeMounts:
-        - name: prowlarr-config
-          mountPath: /config
-        - name: prowlarr-xml
-          mountPath: /tmp/config-xml
-          readOnly: true
-        lifecycle:
-          postStart:
+        {{- with .Values.extraLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "prowlarr.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http # Matches service port name
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.env }}
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: http # Matches port name
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: http # Matches port name
+            {{- else if eq .Values.livenessProbe.type "exec" }}
             exec:
               command:
-              - /bin/sh
-              - -c
-              - |
-                # Copy our generated or existing config.xml from secret to /config
-                cp /tmp/config-xml/config.xml /config/config.xml
-
+                {{- toYaml .Values.livenessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: http # Matches port name
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: http # Matches port name
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if not .Values.secretConfig.existingSecretName }}
+            # Mount the config.xml from the chart-managed secret
+            - name: config-file-secret
+              mountPath: /config/config.xml # Prowlarr expects config.xml here
+              subPath: config.xml           # Matches key in secret.yaml
+              readOnly: true # Config is managed via secret, should be read-only in pod
+            {{- end }}
+            {{- range $key, $value := .Values.persistence }}
+            {{- if $value.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
       volumes:
-      - name: prowlarr-config
-        persistentVolumeClaim:
-          claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "prowlarr.fullname" . }}-config{{- end }}
-
-      - name: prowlarr-xml
-        secret:
-          secretName:{{- if .Values.configXml.existingSecret }} {{ .Values.configXml.existingSecret }}{{- else }} {{ include "prowlarr.fullname" . }}-xml{{- end }}
-
-      restartPolicy: Always
+        {{- if not .Values.secretConfig.existingSecretName }}
+        # Define the volume for the chart-managed config secret
+        - name: config-file-secret
+          secret:
+            secretName: {{ printf "%s-config" (include "prowlarr.fullname" .) }}
+            items:
+              # Ensure this key matches the key in secret.yaml and volumeMounts.subPath
+              - key: config.xml
+                path: config.xml
+        {{- end }}
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "prowlarr.fullname" $) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

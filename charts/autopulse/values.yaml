@@ -1,0 +1,179 @@
+# Default values for autopulse.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/dan-online/autopulse
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {} # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 2875
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+  - host: chart-example.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Configuration Secret handling
+config:
+  # Set to true to use an existing secret instead of creating one
+  existingSecret: false
+  # The name of the secret to use or create
+  secretName: "" # If empty and existingSecret is false, a name is generated
+  # The key within the secret that holds the config.yaml content
+  secretKey: config.yaml
+  # The content of config.yaml (only used if existingSecret is false).
+  # IMPORTANT: It is strongly recommended to provide the actual config.yaml content
+  # using --set-file config.data=/path/to/your/config.yaml during helm install/upgrade
+  # instead of embedding it directly here, especially if it contains sensitive data.
+  data: |
+    # Placeholder based on the example config.yaml structure.
+    # Customize this section or provide the full configuration via --set-file.
+
+    # app:
+      # hostname: 0.0.0.0 # Usually not needed in Kubernetes
+      # port: 2875 # Handled by the Service definition
+      # database_url: # Automatically set in the deployment based on postgresql/externalDatabase values
+
+    # auth:
+      # username: admin
+      # password: password # Store sensitive data securely!
+
+    # opts:
+      # check_path: true
+      # max_retries: 5
+
+    # triggers:
+      # sonarr:
+      #   type: sonarr
+      #   rewrite:
+      #     from: /orig/tv
+      #     to: /new/tv
+
+    # webhooks:
+      # discord:
+      #   type: "discord"
+      #   url: "YOUR_DISCORD_WEBHOOK_URL" # Store sensitive data securely!
+
+    # targets:
+      # plex:
+      #   type: plex
+      #   url: http://plex.your-namespace.svc.cluster.local:32400 # Example internal service URL
+      #   token: YOUR_PLEX_TOKEN # Store sensitive data securely!
+      # jellyfin:
+      #   type: jellyfin
+      #   url: http://jellyfin.your-namespace.svc.cluster.local:8096 # Example internal service URL
+      #   token: YOUR_JELLYFIN_TOKEN # Store sensitive data securely!
+
+# External database configuration (Required)
+externalDatabase:
+  # Choose ONE of the following methods for providing connection details:
+
+  # Method 1: Provide all details directly in values.yaml (least secure for password)
+  # host: ""
+  # port: 5432
+  # username: ""
+  # database: ""
+  # password: "" # Avoid storing plain passwords here
+
+  # Method 2: Provide details in values.yaml, but password from an existing secret
+  host: "" # Required if using Method 2
+  port: 5432 # Required if using Method 2
+  username: "" # Required if using Method 2
+  database: "" # Required if using Method 2
+  existingPasswordSecret: "" # Required if using Method 2. Name of the secret containing the password.
+  passwordSecretKey: "" # Required if using Method 2. Key in the secret for the password.
+  # Method 3: Provide the full database connection URL from an existing secret
+  # existingConnectionStringSecret: "" # Name of the secret containing the full DATABASE_URL
+  # connectionStringSecretKey: "database-url" # Key in the secret for the full DATABASE_URL
+
+  # Method 4: Provide individual connection components from an existing secret
+  # existingConnectionDetailsSecret: "" # Name of the secret containing connection components
+  # hostSecretKey: "db_host"
+  # portSecretKey: "db_port"
+  # usernameSecretKey: "db_user"
+  # passwordSecretKey: "db_password" # Reuses the key name from Method 2 for consistency
+  # databaseSecretKey: "db_name"
+
+  # Environment variables for the autopulse container
+env: {}
+  # Example:
+  # PUID: 1000
+  # PGID: 1000
+  # TZ: Europe/London
+
+# Optional UI configuration
+ui:
+  enabled: false
+  image:
+    repository: danonline/autopulse
+    tag: ui
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 2880
+  ingress:
+    enabled: false
+    # ... similar ingress configuration as above ...
+  env: {}
+    # SECRET: your_secret_here
+    # ORIGIN: http://localhost:2880

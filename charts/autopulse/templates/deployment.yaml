@@ -1,0 +1,140 @@
+apiVersion: {{ include "autopulse.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "autopulse.fullname" . }}
+  labels:
+    {{- include "autopulse.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "autopulse.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "autopulse.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+
+          # Environment variable setup logic based on external database configuration method
+          {{- if .Values.externalDatabase.existingConnectionStringSecret }}
+          # Method 3: Use full connection string from existing secret
+          env:
+            - name: AUTOPULSE__APP__DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "externalDatabase.existingConnectionStringSecret must be set for Method 3" .Values.externalDatabase.existingConnectionStringSecret }}
+                  key: {{ required "externalDatabase.connectionStringSecretKey must be set for Method 3" .Values.externalDatabase.connectionStringSecretKey }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- else if .Values.externalDatabase.existingConnectionDetailsSecret }}
+          # Method 4: Use individual components from existing secret
+          env:
+            - name: AUTOPULSE__APP__DATABASE_URL
+              # Construct the URL from env vars populated below
+              value: "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            # Map secret keys to expected env var names for the connection string
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "externalDatabase.existingConnectionDetailsSecret must be set for Method 4" .Values.externalDatabase.existingConnectionDetailsSecret }}
+                  key: {{ required "externalDatabase.hostSecretKey must be set for Method 4" .Values.externalDatabase.hostSecretKey }}
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingConnectionDetailsSecret }}
+                  key: {{ required "externalDatabase.portSecretKey must be set for Method 4" .Values.externalDatabase.portSecretKey }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingConnectionDetailsSecret }}
+                  key: {{ required "externalDatabase.usernameSecretKey must be set for Method 4" .Values.externalDatabase.usernameSecretKey }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingConnectionDetailsSecret }}
+                  key: {{ required "externalDatabase.passwordSecretKey must be set for Method 4" .Values.externalDatabase.passwordSecretKey }}
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDatabase.existingConnectionDetailsSecret }}
+                  key: {{ required "externalDatabase.databaseSecretKey must be set for Method 4" .Values.externalDatabase.databaseSecretKey }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- else }}
+          # Method 2 (Default): Use external DB details from values.yaml, password from existing secret
+          # This is the fallback if neither Method 3 nor Method 4 is configured.
+          env:
+            - name: AUTOPULSE__APP__DATABASE_URL
+              value: "postgres://{{ include "autopulse.database.username" . }}:$(POSTGRES_PASSWORD)@{{ include "autopulse.database.host" . }}:{{ include "autopulse.database.port" . }}/{{ include "autopulse.database.database" . }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  # Uses helpers which now always require externalDatabase values
+                  name: {{ include "autopulse.database.passwordSecretName" . }}
+                  key: {{ include "autopulse.database.passwordSecretKey" . }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
+
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: {{ .Values.config.secretKey }}
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # livenessProbe:
+          #   httpGet:
+          #     path: / # Adjust if autopulse has a health check endpoint
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: / # Adjust if autopulse has a health check endpoint
+          #     port: http
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "autopulse.config.secretName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

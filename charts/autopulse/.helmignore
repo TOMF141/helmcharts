@@ -1,0 +1,30 @@
+# Patterns to ignore when building packages.
+# This supports shell glob matching, relative path matching, and
+# negation (prefixed with !). Onlypattern matched against files
+# or directories are included in the package.
+
+# Autopulse specific ignores
+config.yaml
+docker-compose.yaml
+db/
+
+# Common ignores
+.DS_Store
+# Common VCS ignores
+.git/
+.gitignore
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+# Common backup files
+*.swp
+*.bak
+*.tmp
+*~
+# Various IDEs
+.project
+.idea/
+*.tmproj
+.vscode/

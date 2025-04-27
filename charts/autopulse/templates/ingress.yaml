@@ -1,10 +1,16 @@
 {{- if .Values.ingress.enabled -}}
+{{- $fullName := include "autopulse.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
 apiVersion: {{ include "autopulse.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ include "autopulse.fullname" . }}
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "autopulse.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -36,12 +42,12 @@ spec:
             backend:
               {{- if eq (include "autopulse.ingress.isStable" $) "true" }}
               service:
-                name: {{ $fullname }}
+                name: {{ $fullName }}
                 port:
-                  name: http
+                  number: {{ $svcPort }}
               {{- else }}
-              serviceName: {{ $fullname }}
-              servicePort: http
+              serviceName: {{ $fullName }}
+              servicePort: {{ $svcPort }}
               {{- end }}
           {{- end }}
     {{- end }}

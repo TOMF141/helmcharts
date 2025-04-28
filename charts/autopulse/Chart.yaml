@@ -2,5 +2,16 @@ apiVersion: v2
 name: autopulse
 description: A Helm chart for Autopulse
 type: application
-version: 0.1.0
-appVersion: "latest" # You might want to pin this to a specific ghcr.io/dan-online/autopulse version
+version: 1.0.0
+appVersion: "latest" # Placeholder: Replace with application version (consider pinning ghcr.io/dan-online/autopulse version)
+
+keywords:
+- autopulse
+# - keyword2
+# - keyword3
+
+home: https://github.com/dan-online/autopulse # Placeholder: Replace with project home URL
+sources:
+- https://github.com/dan-online/autopulse # Placeholder: Replace with source code repository
+
+# - https://hub.docker.com/_/appname # Placeholder: Replace with Docker image source (if applicable)

@@ -2,112 +2,219 @@ apiVersion: {{ include "huntarr.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ include "huntarr.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "huntarr.labels" . | nindent 4 }}
+    {{- include "huntarr.labels" . | nindent 4 | trim }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 | trim }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "huntarr.selectorLabels" . | nindent 6 }}
+      {{- include "huntarr.selectorLabels" . | nindent 6 | trim }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 | trim }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
       {{- end }}
       labels:
-        {{- include "huntarr.selectorLabels" . | nindent 8 }}
+        {{- include "huntarr.selectorLabels" . | nindent 8 | trim }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 | trim }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
       {{- end }}
       serviceAccountName: {{ include "huntarr.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- with .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- toYaml . | nindent 12 | trim }}
+          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.configSecretName }}
-          envFrom: # Use envFrom if configSecretName is set
+          {{- if .Values.secretConfig.configSecretName }}
+          # If configSecretName is set, source all env vars from that existing secret
+          envFrom:
             - secretRef:
-                name: {{ .Values.configSecretName }}
-          {{- else }} # Otherwise, use individual env vars
+                name: {{ .Values.secretConfig.configSecretName }}
+          {{- else }}
+          # Otherwise, build env vars from appConfig and handle API_KEY separately
           env:
-            {{- if .Values.secretName }} # Use secretName only for API_KEY if configSecretName is not set
+            # Non-sensitive vars from appConfig
+            - name: API_URL
+              value: {{ .Values.appConfig.apiUrl | quote }}
+            - name: API_TIMEOUT
+              value: {{ .Values.appConfig.apiTimeout | quote }}
+            - name: MONITORED_ONLY
+              value: {{ .Values.appConfig.monitoredOnly | quote }}
+            - name: HUNT_MISSING_SHOWS
+              value: {{ .Values.appConfig.huntMissingShows | quote }}
+            - name: HUNT_UPGRADE_EPISODES
+              value: {{ .Values.appConfig.huntUpgradeEpisodes | quote }}
+            - name: SLEEP_DURATION
+              value: {{ .Values.appConfig.sleepDuration | quote }}
+            - name: STATE_RESET_INTERVAL_HOURS
+              value: {{ .Values.appConfig.stateResetIntervalHours | quote }}
+            - name: DEBUG_MODE
+              value: {{ .Values.appConfig.debugMode | quote }}
+            - name: ENABLE_WEB_UI
+              value: {{ .Values.appConfig.enableWebUi | quote }}
+            - name: SKIP_FUTURE_EPISODES
+              value: {{ .Values.appConfig.skipFutureEpisodes | quote }}
+            - name: SKIP_SERIES_REFRESH
+              value: {{ .Values.appConfig.skipSeriesRefresh | quote }}
+            - name: COMMAND_WAIT_DELAY
+              value: {{ .Values.appConfig.commandWaitDelay | quote }}
+            - name: COMMAND_WAIT_ATTEMPTS
+              value: {{ .Values.appConfig.commandWaitAttempts | quote }}
+            - name: MINIMUM_DOWNLOAD_QUEUE_SIZE
+              value: {{ .Values.appConfig.minimumDownloadQueueSize | quote }}
+            - name: RANDOM_MISSING
+              value: {{ .Values.appConfig.randomMissing | quote }}
+            - name: RANDOM_UPGRADES
+              value: {{ .Values.appConfig.randomUpgrades | quote }}
+            # Add standard env vars if defined
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 | trim }}
+            {{- end }}
+            # Handle API_KEY based on secretConfig settings
             - name: API_KEY
+            {{- if .Values.secretConfig.secretName }}
+              # Source API_KEY from user-provided existing secret
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secretName }}
-                  key: {{ .Values.secretApiKeyName }}
+                  name: {{ .Values.secretConfig.secretName }}
+                  key: {{ .Values.secretConfig.secretApiKeyName }}
             {{- else }}
-            - name: API_KEY
-              value: {{ .Values.config.apiKey | quote }}
+              # Source API_KEY from chart-managed secret (created by secret.yaml)
+              valueFrom:
+                secretKeyRef:
+                  # This name must match the secret created in secret.yaml
+                  name: {{ include "huntarr.fullname" . }}
+                  key: API_KEY # This key must match the key in secret.yaml
+            {{- end }} # End of secretName check
+          {{- end }} # End of configSecretName check
+
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: http # Matches the port name above
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: http # Matches the port name above
+            {{- else if eq .Values.livenessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.livenessProbe.command | nindent 16 | trim }}
             {{- end }}
-            - name: API_URL
-              value: {{ .Values.config.apiUrl | quote }}
-            - name: API_TIMEOUT
-              value: {{ .Values.config.apiTimeout | quote }}
-            - name: MONITORED_ONLY
-              value: {{ .Values.config.monitoredOnly | quote }}
-            - name: HUNT_MISSING_SHOWS
-              value: {{ .Values.config.huntMissingShows | quote }}
-            - name: HUNT_UPGRADE_EPISODES
-              value: {{ .Values.config.huntUpgradeEpisodes | quote }}
-            - name: SLEEP_DURATION
-              value: {{ .Values.config.sleepDuration | quote }}
-            - name: STATE_RESET_INTERVAL_HOURS
-              value: {{ .Values.config.stateResetIntervalHours | quote }}
-            - name: DEBUG_MODE
-              value: {{ .Values.config.debugMode | quote }}
-            - name: ENABLE_WEB_UI
-              value: {{ .Values.config.enableWebUi | quote }}
-            - name: SKIP_FUTURE_EPISODES
-              value: {{ .Values.config.skipFutureEpisodes | quote }}
-            - name: SKIP_SERIES_REFRESH
-              value: {{ .Values.config.skipSeriesRefresh | quote }}
-            - name: COMMAND_WAIT_DELAY
-              value: {{ .Values.config.commandWaitDelay | quote }}
-            - name: COMMAND_WAIT_ATTEMPTS
-              value: {{ .Values.config.commandWaitAttempts | quote }}
-            - name: MINIMUM_DOWNLOAD_QUEUE_SIZE
-              value: {{ .Values.config.minimumDownloadQueueSize | quote }}
-            - name: RANDOM_MISSING
-              value: {{ .Values.config.randomMissing | quote }}
-            - name: RANDOM_UPGRADES
-              value: {{ .Values.config.randomUpgrades | quote }}
-          {{- end }} # End of the 'else' for configSecretName check
-          volumeMounts:
-            {{- if .Values.persistence.config.enabled }}
-            - name: config
-              mountPath: /config
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: http # Matches the port name above
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: http # Matches the port name above
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.command | nindent 16 | trim }}
             {{- end }}
-            # Add other volume mounts here if needed
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 | trim }}
+          volumeMounts:
+            {{- range $key, $value := .Values.persistence }}
+            {{- if $value.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
       volumes:
-        {{- if .Values.persistence.config.enabled }}
-        - name: config
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ include "huntarr.fullname" . }}-config
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "huntarr.fullname" .) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
         {{- end }}
-        # Add other volumes here if needed
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 | trim }}
       {{- end }}

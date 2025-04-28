@@ -1,117 +1,202 @@
-apiVersion: apps/v1
+apiVersion: {{ include "appname.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ include "sabnzbd.fullname" . }}
-  namespace: {{ .Values.namespace }} # Use namespace from values
+  name: {{ include "appname.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    # Explicit standard labels
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
-    # Add labels directly from values
-    {{- range $key, $value := .Values.labels }}
+    {{- include "appname.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
-  # Removed annotations block
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  progressDeadlineSeconds: 600
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
-      # Explicit selector matching qBittorrent, using index for key with dots
-      io.kompose.service: {{ index .Values.labels "io.kompose.service" | default (include "sabnzbd.name" .) }}
+      {{- include "appname.selectorLabels" . | nindent 6 }}
   strategy:
-    type: Recreate
+    {{- toYaml .Values.strategy | nindent 4 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        # Explicit standard labels
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
-        # Add labels directly from values
-        {{- range $key, $value := .Values.labels }}
-        {{ $key }}: {{ $value | quote }}
+        {{- include "appname.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
-      # Removed podAnnotations block for simplicity
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "appname.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostname }}
       hostname: {{ .Values.hostname | quote }}
-{{- with .Values.nodeSelector }}
-      nodeSelector:
-{{- toYaml . | nindent 8 }}
-{{- end }}
-{{- with .Values.tolerations }}
-      tolerations:
-{{- toYaml . | nindent 8 }}
-{{- end }}
-{{- with .Values.affinity }}
-      affinity:
-{{- toYaml . | nindent 8 }}
-{{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-{{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-{{- end }}
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - name: http # Matches service port name
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
-              name: http
-          resources:
-{{- toYaml .Values.resources | nindent 12 }}
-{{- if .Values.livenessProbe.enabled }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.livenessProbe.port | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.port | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "exec" }}
             exec:
               command:
-              - /usr/bin/env
-              - bash
-              - -c
-              - curl --fail localhost:{{ .Values.service.port }}
+                {{- toYaml .Values.livenessProbe.command | nindent 16 }}
+            {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            {{- if .Values.livenessProbe.successThreshold }}
             successThreshold: {{ .Values.livenessProbe.successThreshold }}
-{{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.readinessProbe.port | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.port | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            {{- if .Values.readinessProbe.successThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-{{- if .Values.persistence.config.enabled }}
-            - name: sabnzbd-config
-              mountPath: {{ .Values.persistence.config.mountPath }}
-{{- end }}
-{{- if .Values.nfs.plexmedia.enabled }}
-            - name: plexmedia-nfs
-              mountPath: {{ .Values.nfs.plexmedia.mountPath }}
-              readOnly: {{ .Values.nfs.plexmedia.readOnly | default false }}
-{{- end }}
-{{- if .Values.nfs.download.enabled }}
-            - name: download-temp
-              mountPath: {{ .Values.nfs.download.mountPath }}
-              readOnly: {{ .Values.nfs.download.readOnly | default false }}
-{{- end }}
+            {{- /* Mount the config PVC */}}
+            {{- range $key, $value := .Values.persistence }}
+            {{- if and $value.enabled (eq $key "config") }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- /* Mount sabnzbd.ini from secret into the config volume mount */}}
+            {{- if not .Values.secretConfig.existingSecretName }}
+            - name: config # Mount to the same volume as the PVC
+              mountPath: /config/sabnzbd.ini # Mount directly as sabnzbd.ini
+              subPath: sabnzbd.ini           # Use the key from the secret
+              readOnly: false # Needs to be writable initially if SABnzbd modifies it? Check SABnzbd behavior.
+            {{- end }}
+            {{- /* Mount other persistence volumes (PVC or NFS) */}}
+            {{- range $key, $value := .Values.persistence }}
+            {{- if and $value.enabled (ne $key "config") }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
       volumes:
-{{- if .Values.persistence.config.enabled }}
-        - name: sabnzbd-config
+        {{- /* Define persistence volumes (PVC or NFS) */}}
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.config.existingClaim }}
-{{- end }}
-{{- if .Values.nfs.download.enabled }}
-        - name: download-temp
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "appname.fullname" $) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
           nfs:
-            server: {{ .Values.nfs.download.server }}
-            path: {{ .Values.nfs.download.path }}
-            readOnly: {{ .Values.nfs.download.readOnly | default false }}
-{{- end }}
-{{- if .Values.nfs.plexmedia.enabled }}
-        - name: plexmedia-nfs
-          nfs:
-            server: {{ .Values.nfs.plexmedia.server }}
-            path: {{ .Values.nfs.plexmedia.path }}
-            readOnly: {{ .Values.nfs.plexmedia.readOnly | default false }}
-{{- end }}
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      terminationGracePeriodSeconds: 30
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- /* Define sabnzbd.ini secret volume only if not using existingSecretName */}}
+        {{- if not .Values.secretConfig.existingSecretName }}
+        - name: config # Use the same name as the PVC volume for the mount
+          secret:
+            secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
+            items:
+              - key: sabnzbd.ini # Key defined in secret.yaml
+                path: sabnzbd.ini # Path within the secret volume mount
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -73,23 +73,13 @@ apps/v1beta2
 {{- end -}}
 
 {{/*
-Return the appropriate apiVersion for statefulset.
+Placeholder: Define application-specific helpers here if needed.
+Example: Helper to render a config file based on appConfig/secretConfig.
 */}}
-{{- define "huntarr.statefulset.apiVersion" -}}
-{{- if semverCompare ">=1.9-0" .Capabilities.KubeVersion.GitVersion -}}
-apps/v1
-{{- else -}}
-apps/v1beta2
-{{- end -}}
-{{- end -}}
-
 {{/*
-Return the appropriate apiVersion for persistentvolumeclaim.
+{{- define "huntarr.configfile" -}}
+# Example config file content rendered by Helm chart {{ .Chart.Name }}-{{ .Chart.Version }}
+# setting1: {{ .Values.appConfig.setting1 | quote }}
+# sensitive_setting: {{ .Values.secretConfig.sensitive_setting | quote }}
+{{- end -}}
 */}}
-{{- define "huntarr.persistentvolumeclaim.apiVersion" -}}
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-v1
-{{- else -}}
-v1
-{{- end -}}
-{{- end -}}

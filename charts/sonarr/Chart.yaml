@@ -2,5 +2,19 @@ apiVersion: v2
 name: sonarr
 description: A Helm chart to deploy Sonarr
 type: application
-version: 0.1.6
+version: 1.0.0
 appVersion: "4.0.0"
+
+keywords:
+- sonarr
+- tv
+- series
+- download
+- usenet
+- bittorrent
+
+home: https://sonarr.tv/
+sources:
+- https://github.com/Sonarr/Sonarr
+- https://github.com/linuxserver/docker-sonarr # Source for the specific image used
+- https://lscr.io/linuxserver/sonarr # Image source

@@ -2,5 +2,16 @@ apiVersion: v2
 name: qbittorrent
 description: A Helm chart to deploy qBittorrent
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "latest"
+
+keywords:
+- qbittorrent
+- bittorrent
+- download
+
+home: https://www.qbittorrent.org/
+sources:
+- https://github.com/qbittorrent/qBittorrent
+- https://github.com/linuxserver/docker-qbittorrent # Source for the specific image used
+- https://lscr.io/linuxserver/qbittorrent # Image source

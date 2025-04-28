@@ -1,21 +1,38 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sabnzbd.fullname" . }}
-  namespace: {{ .Values.namespace }} # Use namespace from values
+  name: {{ include "appname.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    # Explicit standard labels only, to avoid linting issues
+    helm.sh/chart: {{ include "appname.chart" . }}
+    app.kubernetes.io/name: {{ include "appname.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ include "sabnzbd.name" . }}
-    # Removed inclusion of .Values.labels due to persistent linting errors
-  # Removed annotations block for simplicity
+    {{- if .Chart.AppVersion }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    {{- end }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- range $key, $value := .Values.service.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - name: http # Use explicit name like deployment
+    - name: http # Matches deployment port name
       port: {{ .Values.service.port }}
-      targetPort: http # Target the named port 'http' in the deployment
+      targetPort: {{ .Values.service.targetPort | default .Values.service.port }} # Target port number
       protocol: TCP
+      {{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector:
-    # Explicit selector matching qBittorrent, using index for key with dots
-    io.kompose.service: {{ index .Values.labels "io.kompose.service" | default (include "sabnzbd.name" .) }}
+    app.kubernetes.io/name: {{ include "appname.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

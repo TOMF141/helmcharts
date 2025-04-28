@@ -2,5 +2,17 @@ apiVersion: v2
 name: tautulli
 description: A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server
 type: application
-version: 0.1.6
+version: 1.0.0
 appVersion: "latest"
+
+keywords:
+- tautulli
+- plex
+- monitoring
+- statistics
+
+home: https://tautulli.com/
+sources:
+- https://github.com/Tautulli/Tautulli
+- https://github.com/linuxserver/docker-tautulli # Source for the specific image used
+- https://lscr.io/linuxserver/tautulli # Image source

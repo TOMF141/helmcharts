@@ -12,46 +12,151 @@ image:
   tag: latest
   pullPolicy: Always
 
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
 # ------------------------------------------------------------------------------
 # Number of replicas
 # ------------------------------------------------------------------------------
 replicaCount: 1
 
-# ------------------------------------------------------------------------------
-# Additional labels
-# ------------------------------------------------------------------------------
-labels:
+# -- Deployment strategy. qBittorrent often works better with Recreate.
+strategy:
+  type: Recreate
+  # rollingUpdate:
+  #   maxSurge: "25%"
+  #   maxUnavailable: "25%"
+
+  # ------------------------------------------------------------------------------
+  # Service Account
+  # ------------------------------------------------------------------------------
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod.
+podLabels:
   app: qbittorrent
   version: latest
-  io.kompose.service: qbittorrent
+  io.kompose.service: qbittorrent # Keep this for service selector compatibility if needed, though template uses appname.selectorLabels
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
+
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
 
 # ------------------------------------------------------------------------------
 # Environment variables
 # ------------------------------------------------------------------------------
 env:
+  # TZ: Europe/London # Example: Set Timezone
+  # PUID: 1000 # Example: Set User ID
+  # PGID: 1000 # Example: Set Group ID
   UMASK: "000"
   DOCKER_MODS: ghcr.io/themepark-dev/theme.park:qbittorrent
   TP_THEME: plex
+
+# -- Environment variables sourced from ConfigMaps or Secrets.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
 
 # ------------------------------------------------------------------------------
 # Liveness probe
 # ------------------------------------------------------------------------------
 livenessProbe:
   enabled: true
+  # type: exec # Defaulting to exec based on command below
   initialDelaySeconds: 30
   periodSeconds: 60
-  command: curl --fail localhost:8080
+  timeoutSeconds: 5 # Added default
+  failureThreshold: 3 # Added default
+  command: curl --fail localhost:8080 # Specific command for qBittorrent
 
-# ------------------------------------------------------------------------------
-# Service config
-# ------------------------------------------------------------------------------
+# -- Readiness probe configuration. Disabled by default for qBittorrent.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: false
+  # type: httpGet
+  # path: /
+  # port: http
+  # initialDelaySeconds: 15
+  # periodSeconds: 15
+  # timeoutSeconds: 5
+  # failureThreshold: 3
+
+  # ------------------------------------------------------------------------------
+  # Service config
+  # ------------------------------------------------------------------------------
 service:
+  # -- Kubernetes service type.
   type: ClusterIP
+  # -- Service port.
   port: 8080
+  # -- Service target port. Defaults to the service port.
+  targetPort: 8080
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
 
 # ------------------------------------------------------------------------------
-# Resource requests & limits
+# Ingress config
 # ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: qbittorrent.local # Placeholder: Change this
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: qbittorrent-tls
+  #    hosts:
+  #      - qbittorrent.local
+
+  # ------------------------------------------------------------------------------
+  # Resource requests & limits
+  # ------------------------------------------------------------------------------
 resources:
   limits:
     cpu: "2"
@@ -73,11 +178,19 @@ affinity: {}
 persistence:
   config:
     enabled: true
+    type: pvc
+    mountPath: /config
+    accessModes:
+    - ReadWriteOnce
     size: 1Gi
     existingClaim: "qbittorrent-config"
     storageClass: ""
   download:
     enabled: true
+    type: pvc
+    mountPath: /downloads
+    accessModes:
+    - ReadWriteOnce
     size: 1000Gi
     existingClaim: "qbittorrent-download"
     storageClass: ""
@@ -89,13 +202,43 @@ nfs:
   enabled: true
   server: "10.3.200.151"
   path: "/mnt/zpool/plexmedia"
+  # -- Mount path inside the container for the NFS volume.
+  mountPath: /mnt/nfs/media # Example mount path
 
 # ------------------------------------------------------------------------------
 # Hostname override
 # ------------------------------------------------------------------------------
 hostname: qbittorrent
 
-# ------------------------------------------------------------------------------
-# Namespace
-# ------------------------------------------------------------------------------
-namespace: download
+# -- Application specific configuration (non-sensitive).
+# Placeholder: Structure this section based on how the application is configured (env vars, config file).
+appConfig: {}
+  # Example for env var based config:
+  # SOME_SETTING: "value"
+  # ANOTHER_SETTING: true
+  # Example for file based config (used by helper to render file):
+  # section:
+  #   key: value
+
+# -- Application specific configuration (sensitive).
+# Placeholder: Structure this section for sensitive values (API keys, passwords).
+secretConfig: {}
+  # -- Set to the name of an existing secret containing the full config file content. If set, the chart will not render its own config.
+  # existingSecretName: ""
+  # -- The key within the existing secret that holds the config file content.
+  # existingSecretKey: "config.yaml" # Or config.xml, settings.json etc.
+
+  # Example for env var based config:
+  # API_KEY: "" # Provide directly (less secure) or use apiKeySecretRef
+  # apiKeySecretRef:
+  #   name: "" # Name of existing secret
+  #   key: ""  # Key in existing secret
+
+  # Example for file based config (used by helper to render file):
+  # database:
+  #   password: "" # Provide directly (less secure) or use passwordSecretRef
+  #   passwordSecretRef:
+  #     name: ""
+  #     key: ""
+
+# Note: Top-level 'namespace' key removed as it's typically managed outside chart values.

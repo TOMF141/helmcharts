@@ -1,13 +1,11 @@
-# ------------------------------------------------------------------------------
-# Name and fullname override
-# ------------------------------------------------------------------------------
-# nameOverride: ""
-# fullnameOverride: ""
+# Default values for tautulli.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
-# ------------------------------------------------------------------------------
-# Namespace
-# ------------------------------------------------------------------------------
-namespace: default
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
 
 # ------------------------------------------------------------------------------
 # Image configuration
@@ -17,42 +15,105 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
 # ------------------------------------------------------------------------------
 # Number of replicas
 # ------------------------------------------------------------------------------
 replicaCount: 1
 
-# ------------------------------------------------------------------------------
-# Labels
-# ------------------------------------------------------------------------------
-labels: {}
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate # Default strategy
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
 
 # ------------------------------------------------------------------------------
-# Environment variables
+# Service Account
 # ------------------------------------------------------------------------------
-env:
-  DOCKER_MODS: ghcr.io/gilbn/theme.park:tautulli
-  TP_THEME: space-gray
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
 
-# ------------------------------------------------------------------------------
-# Liveness probe
-# ------------------------------------------------------------------------------
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 30
-  periodSeconds: 60
-  command: curl --fail localhost:8181/status
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod. (Original 'labels' moved here)
+podLabels: {} # Add any specific pod labels here if needed
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
 
-# ------------------------------------------------------------------------------
-# Service config
-# ------------------------------------------------------------------------------
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Security context for the container. (Original 'securityContext' moved here)
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+  # ------------------------------------------------------------------------------
+  # Service config
+  # ------------------------------------------------------------------------------
 service:
+  # -- Kubernetes service type.
   type: ClusterIP
+  # -- Service port.
   port: 8181
+  # -- Service target port. Defaults to the service port.
+  targetPort: 8181
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
 
 # ------------------------------------------------------------------------------
-# Resource requests & limits
+# Ingress config
 # ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: tautulli.local # Placeholder: Change this
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: tautulli-tls
+  #    hosts:
+  #      - tautulli.local
+
+  # ------------------------------------------------------------------------------
+  # Resource requests & limits
+  # ------------------------------------------------------------------------------
 resources:
   limits:
     memory: 2Gi
@@ -61,56 +122,115 @@ resources:
     memory: 1Gi
 
 # ------------------------------------------------------------------------------
-# Node scheduling
+# Liveness probe
 # ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  type: httpGet # Using standard httpGet probe for Tautulli
+  path: /status # Standard Tautulli status path
+  port: http # References service.port name (8181)
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  timeoutSeconds: 5 # Added default
+  failureThreshold: 3 # Added default
+  # successThreshold: 1 # Default is 1
+
+  # -- Readiness probe configuration. Disabled by default.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: false
+  # type: httpGet
+  # path: /status
+  # port: http
+  # initialDelaySeconds: 15
+  # periodSeconds: 15
+  # timeoutSeconds: 5
+  # failureThreshold: 3
+
+  # ------------------------------------------------------------------------------
+  # Persistence
+  # ------------------------------------------------------------------------------
+persistence:
+  config:
+    # -- Enable persistence for config volume.
+    enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc # Default to PVC, can be overridden to iscsi if needed
+    # -- Mount path inside the container.
+    mountPath: /config
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
+    size: 1Gi
+    # -- Storage class for the PVC. If "", uses default.
+    storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+    # -- iSCSI specific settings (only used if type is iscsi)
+    # targetPortal: "10.0.2.15:3260"
+    # iqn: "iqn.2001-04.com.example:storage.kube.sys1.xyz"
+    # lun: 0
+    # fsType: "ext4"
+    # readOnly: false
+    # secretRef: "" # Name of secret for CHAP authentication
+  backups:
+    # -- Enable persistence for backups volume.
+    enabled: true
+    # -- Type of volume.
+    type: nfs
+    # -- Mount path inside the container.
+    mountPath: /backups # Example mount path for backups
+    # -- NFS specific settings
+    server: "10.3.200.151"
+    path: "/mnt/kubebackup/kube-prod/tautulli"
+    # readOnly: false
+
+    # ------------------------------------------------------------------------------
+    # Node scheduling
+    # ------------------------------------------------------------------------------
 nodeSelector: {}
 tolerations: []
 affinity: {}
 
 # ------------------------------------------------------------------------------
-# Security context
-# ------------------------------------------------------------------------------
-securityContext:
-  allowPrivilegeEscalation: false
-
-# ------------------------------------------------------------------------------
-# Storage configuration
-# ------------------------------------------------------------------------------
-storage:
-  # Set to true to use iSCSI for /config instead of PVC
-  useIscsi: false
-
-# ------------------------------------------------------------------------------
-# Persistence for Tautulli config (used when storage.useIscsi is false)
-# ------------------------------------------------------------------------------
-persistence:
-  config:
-    enabled: true
-    size: 1Gi
-    existingClaim: ""
-    storageClass: ""
-
-# ------------------------------------------------------------------------------
-# NFS volume for backups
-# ------------------------------------------------------------------------------
-nfs:
-  enabled: true
-  server: "10.3.200.151"
-  path: "/mnt/kubebackup/kube-prod/tautulli"
-
-# ------------------------------------------------------------------------------
-# iSCSI volume configuration (used when storage.useIscsi is true)
-# ------------------------------------------------------------------------------
-iscsi:
-  enabled: false
-  targetPortal: "10.0.2.15:3260"
-  portals: []
-  iqn: "iqn.2001-04.com.example:storage.kube.sys1.xyz"
-  lun: 0
-  fsType: "ext4"
-  readOnly: false
-
-# ------------------------------------------------------------------------------
 # Hostname override
 # ------------------------------------------------------------------------------
 hostname: tautulli
+
+# ------------------------------------------------------------------------------
+# Environment variables
+# ------------------------------------------------------------------------------
+env:
+  # TZ: Europe/London # Example: Set Timezone
+  # PUID: 1000 # Example: Set User ID
+  # PGID: 1000 # Example: Set Group ID
+  # UMASK: "002" # Example
+  DOCKER_MODS: ghcr.io/gilbn/theme.park:tautulli
+  TP_THEME: space-gray
+  # Add other Tautulli specific env vars if needed (e.g., TAUTULLI_API_KEY)
+
+  # -- Environment variables sourced from ConfigMaps or Secrets.
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# ------------------------------------------------------------------------------
+# Application specific configuration (non-sensitive)
+# ------------------------------------------------------------------------------
+# Tautulli is primarily configured via env vars or its UI/config.ini.
+# Use this section if specific non-sensitive config file generation is needed.
+appConfig: {}
+
+# ------------------------------------------------------------------------------
+# Application specific configuration (sensitive)
+# ------------------------------------------------------------------------------
+# Use this section if sensitive config file generation or env vars from secrets are needed.
+secretConfig: {}
+  # Example: TAUTULLI_API_KEY if managing via secret
+  # tautulliApiKey: ""
+  # apiKeySecretRef:
+  #   name: ""
+  #   key: ""

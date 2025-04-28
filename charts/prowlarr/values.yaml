@@ -1,58 +1,110 @@
-# ------------------------------------------------------------------------------
-# Name and fullname override
-# ------------------------------------------------------------------------------
-# nameOverride: ""
-# fullnameOverride: ""
+# Default values for prowlarr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
-# ------------------------------------------------------------------------------
-# Namespace
-# ------------------------------------------------------------------------------
-namespace: default
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
 
-# ------------------------------------------------------------------------------
-# Image configuration
-# ------------------------------------------------------------------------------
-image:
-  repository: lscr.io/linuxserver/prowlarr
-  tag: latest
-  pullPolicy: IfNotPresent
+# -- Namespace to deploy the chart in.
+# namespace: default # Keep this commented unless specifically needed
 
-# ------------------------------------------------------------------------------
-# Number of replicas
-# ------------------------------------------------------------------------------
+# -- Number of replicas for the deployment.
 replicaCount: 1
 
-# ------------------------------------------------------------------------------
-# Additional labels
-# ------------------------------------------------------------------------------
-labels: {}
+image:
+  # -- Container image repository.
+  repository: lscr.io/linuxserver/prowlarr
+  # -- Container image pull policy.
+  pullPolicy: IfNotPresent
+  # -- Container image tag. Defaults to .Chart.AppVersion.
+  tag: latest # Prowlarr doesn't follow Chart.AppVersion strictly
 
-# ------------------------------------------------------------------------------
-# Environment variables (UMASK, etc.)
-# ------------------------------------------------------------------------------
-env:
-  UMASK: "000"
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
 
-# ------------------------------------------------------------------------------
-# Liveness probe
-# ------------------------------------------------------------------------------
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 30
-  periodSeconds: 60
-  command: |
-    curl --fail localhost:9696/api/v3/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
 
-# ------------------------------------------------------------------------------
-# Service config
-# ------------------------------------------------------------------------------
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod.
+podLabels: {}
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
+
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
 service:
+  # -- Kubernetes service type.
   type: ClusterIP
+  # -- Service port.
   port: 9696
+  # -- Service target port. Defaults to the service port.
+  targetPort: 9696 # Explicitly set for clarity
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
 
-# ------------------------------------------------------------------------------
-# Resource requests & limits
-# ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: prowlarr.local # Placeholder: Adjust host
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: prowlarr-tls
+  #    hosts:
+  #      - prowlarr.local
+
+  # -- Resource requests and limits.
+  # See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 resources:
   limits:
     memory: 512Mi
@@ -60,57 +112,168 @@ resources:
     cpu: 50m
     memory: 128Mi
 
-# ------------------------------------------------------------------------------
-# Node scheduling
-# ------------------------------------------------------------------------------
-nodeSelector: {}
-tolerations: []
-affinity: {}
+# -- Liveness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  enabled: true
+  type: httpGet # Changed from exec for standardization
+  path: / # Basic check
+  port: http # References service.port name (9696)
+  initialDelaySeconds: 30
+  periodSeconds: 60 # Kept original period
+  timeoutSeconds: 5
+  failureThreshold: 3
 
-# ------------------------------------------------------------------------------
-# Persistence for Prowlarr config (/config)
-# ------------------------------------------------------------------------------
+# -- Readiness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: true
+  type: httpGet
+  path: / # Basic check
+  port: http # References service.port name (9696)
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Persistence configuration. Defines volumes and mounts.
+# See https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 persistence:
   config:
+    # -- Enable persistence for config volume.
     enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /config
+    # -- SubPath within the volume to mount.
+    # subPath: ""
+    # -- Mount read-only.
+    # readOnly: false
+
+    # -- PVC specific settings (ignored if type is not pvc)
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
     size: 1Gi
-    existingClaim: ""
+    # -- Storage class for the PVC. If "", uses default.
     storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+    # -- hostPath specific settings (ignored if type is not hostPath)
+    # path: /path/on/host
+    # hostPathType: DirectoryOrCreate
 
-# ------------------------------------------------------------------------------
-# Hostname override
-# ------------------------------------------------------------------------------
-hostname: prowlarr
+    # -- emptyDir specific settings (ignored if type is not emptyDir)
+    # medium: "" # Memory or ""
+    # sizeLimit: ""
 
-# ------------------------------------------------------------------------------
-# configXml: Template-driven config.xml
-# ------------------------------------------------------------------------------
-configXml:
-  # If non-empty, references an existing secret with key "config.xml".
-  # Otherwise, chart creates a secret with the rendered config.xml.
-  existingSecret: ""
+    # -- NFS specific settings (ignored if type is not nfs)
+    # server: nfs.example.com
+    # path: /exported/path
 
+    # -- iSCSI specific settings (ignored if type is not iscsi)
+    # targetPortal: 1.2.3.4:3260
+    # iqn: iqn.2001-04.com.example:storage.kube.sys1.xyz
+    # lun: 0
+    # fsType: ext4
+    # secretRef: "" # Name of secret for CHAP authentication
+
+    # -- Node selector configuration.
+    # See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+nodeSelector: {}
+
+# -- Tolerations configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+tolerations: []
+
+# -- Affinity configuration.
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}
+
+# -- Environment variables passed directly to the container.
+# See https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
+env:
+  # -- Timezone for the container.
+  TZ: Europe/London # Placeholder: Adjust timezone
+  # -- User ID to run the application as.
+  PUID: "1000" # Placeholder: Adjust PUID
+  # -- Group ID to run the application as.
+  PGID: "1000" # Placeholder: Adjust PGID
+  # -- Umask for file creation.
+  UMASK: "002" # Changed from 000 to a more standard default
+
+# -- Environment variables sourced from ConfigMaps or Secrets.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# -- Application specific configuration (non-sensitive).
+# This section is for non-sensitive settings that might be needed.
+# Prowlarr primarily uses config.xml, managed via secretConfig below.
+appConfig: {}
+
+# -- Application specific configuration (sensitive).
+# Values here will be used to render the config.xml in the secret template.
+secretConfig:
+  # -- Set to the name of an existing secret containing the full config.xml content.
+  # If set, the chart will not render its own config.xml.
+  existingSecretName: ""
+  # -- The key within the existing secret that holds the config.xml content.
+  # Defaults to "config.xml".
+  existingSecretKey: "config.xml"
+
+  # -- Values used to render config.xml if existingSecretName is not set.
+  # -- Corresponds to <BindAddress> in config.xml
   bindAddress: "*"
+  # -- Corresponds to <Port> in config.xml
   port: 9696
+  # -- Corresponds to <SslPort> in config.xml
   sslPort: 9697
+  # -- Corresponds to <EnableSsl> in config.xml
   enableSsl: "False"
+  # -- Corresponds to <LaunchBrowser> in config.xml
   launchBrowser: "True"
+  # -- Corresponds to <ApiKey> in config.xml. Provide directly or via secret ref.
   apiKey: ""
+  # apiKeySecretRef:
+  #   name: "" # Name of existing secret
+  #   key: ""  # Key in existing secret
+  # -- Corresponds to <AuthenticationMethod> in config.xml
   authenticationMethod: "External"
+  # -- Corresponds to <AuthenticationRequired> in config.xml
   authenticationRequired: "DisabledForLocalAddresses"
+  # -- Corresponds to <Branch> in config.xml
   branch: "main"
+  # -- Corresponds to <LogLevel> in config.xml
   logLevel: "info"
+  # -- Corresponds to <SslCertPath> in config.xml
   sslCertPath: ""
+  # -- Corresponds to <SslCertPassword> in config.xml. Provide directly or via secret ref.
   sslCertPassword: ""
+  # sslCertPasswordSecretRef:
+  #   name: ""
+  #   key: ""
+  # -- Corresponds to <UrlBase> in config.xml
   urlBase: ""
+  # -- Corresponds to <InstanceName> in config.xml
   instanceName: "Prowlarr"
+  # -- Corresponds to <UpdateMechanism> in config.xml
   updateMechanism: "Docker"
 
-  # Postgres block
+  # -- Postgres connection details (if enabled)
   postgres:
     enabled: false
     user: ""
+    # -- Provide password directly or via secret ref.
     password: ""
+    # passwordSecretRef:
+    #   name: ""
+    #   key: ""
     host: ""
     port: ""
     mainDb: ""

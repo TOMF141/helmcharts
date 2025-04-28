@@ -2,23 +2,39 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "overseerr.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }} # Use standard Release.Namespace
   labels:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: overseerr
-    io.kompose.service: overseerr
-    app: overseerr
-    {{- include "overseerr.labels" . | nindent 4 }}
+    # Include standard labels defined in _helpers
+{{ include "overseerr.labels" . | indent 4 }}
+    # Include extra labels defined globally in values.yaml
+{{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+{{- end }}
+    # Include service specific labels defined in values.yaml
+{{- range $key, $value := .Values.service.labels }}
+    {{ $key }}: {{ $value | quote }}
+{{- end }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    # Include service specific annotations defined in values.yaml
+{{- range $key, $value := .Values.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+{{- end }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
+  # Keep existing ipFamily settings
   ipFamilies:
   - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: "{{ .Values.service.port }}"
-    port: {{ .Values.service.port }}
-    targetPort: 5055
+    - name: {{ .Values.service.name | default "http" }} # Use standard port name from values or default
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort | default .Values.service.port }} # Use targetPort from values or default to port
+      protocol: TCP
+      {{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
   selector:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: overseerr
-    app: {{ include "overseerr.fullname" . }}
+    # Selectors should only use the base selector labels from _helpers
+{{ include "overseerr.selectorLabels" . | indent 4 }}

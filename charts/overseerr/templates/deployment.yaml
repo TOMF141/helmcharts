@@ -1,117 +1,175 @@
-apiVersion: apps/v1
+apiVersion: {{ include "overseerr.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ include "overseerr.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }} # Use Release.Namespace for standard Helm behavior
   labels:
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: overseerr
-    io.kompose.service: overseerr
-    app: overseerr
+    app.kubernetes.io/name: {{ include "overseerr.name" . }}
     {{- include "overseerr.labels" . | nindent 4 }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
 spec:
-  progressDeadlineSeconds: 600
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/name: overseerr
-      app: {{ include "overseerr.fullname" . }}
+      app.kubernetes.io/name: {{ include "overseerr.name" . }}
   strategy:
-    type: Recreate
+{{ toYaml .Values.strategy | indent 4 }}
   template:
     metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
       labels:
+        # Add standard selector labels for matching service selector
         app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/name: overseerr
-        io.kompose.service: overseerr
-        app: {{ include "overseerr.fullname" . }}
+        app.kubernetes.io/name: {{ include "overseerr.name" . }}
+        # Include the common labels from _helpers.tpl
         {{- include "overseerr.labels" . | nindent 8 }}
+        # Add any extra pod labels defined in values
+        {{- with .Values.podLabels }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
     spec:
-      hostname: {{ .Values.hostname | quote }}
-      nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
-      tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
-      affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
-
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "overseerr.serviceAccountName" . }}
+    {{- with .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- if .Values.hostname }}
+      hostname: {{ .Values.hostname }}
+    {{- end }}
       containers:
-      - name: overseerr
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        env:
-        {{- range $key, $value := .Values.env }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
+        - name: {{ .Chart.Name }}
+        {{- with .Values.containerSecurityContext }}
+          securityContext:
+{{ toYaml . | indent 12 }}
         {{- end }}
-        ports:
-        - containerPort: 5055
-          protocol: TCP
-        resources:
-          limits:
-            memory: {{ .Values.resources.limits.memory }}
-          requests:
-            cpu: {{ .Values.resources.requests.cpu }}
-            memory: {{ .Values.resources.requests.memory }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: {{ .Values.service.name | default "http" }}
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+{{ toYaml .Values.env | indent 12 }}
+        {{- with .Values.envFrom }}
+          envFrom:
+{{ toYaml . | indent 12 }}
+        {{- end }}
         {{- if .Values.livenessProbe.enabled }}
-        livenessProbe:
-          exec:
-            command:
-            - /usr/bin/env
-            - bash
-            - -c
-            - {{ .Values.livenessProbe.command | quote }}
-          failureThreshold: 3
-          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-          successThreshold: 1
-          timeoutSeconds: 1
+          livenessProbe:
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.service.name | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.service.name | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "exec" }}
+            exec:
+              command:
+{{ toYaml .Values.livenessProbe.command | indent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
         {{- end }}
-        securityContext:
-          allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
-        volumeMounts:
-        {{- if not .Values.storage.useIscsi }}
-        - name: overseerr-config
-          mountPath: /config
+        {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.service.name | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.service.name | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+{{ toYaml .Values.readinessProbe.command | indent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
         {{- end }}
-        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-        - name: backup-nfs
-          mountPath: /config/backups
-        {{- end }}
-        {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
-        - name: iscsi-storage
-          mountPath: /config
-        {{- end }}
-
-      volumes:
-      {{- if not .Values.storage.useIscsi }}
-      - name: overseerr-config
-        persistentVolumeClaim:
-          claimName:{{- if .Values.persistence.config.existingClaim }} {{ .Values.persistence.config.existingClaim }}{{- else }} {{ include "overseerr.fullname" . }}-config{{- end }}
-      {{- end }}
-      {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-      - name: backup-nfs
-        nfs:
-          server: {{ .Values.nfs.server }}
-          path: {{ .Values.nfs.path }}
-      {{- end }}
-      {{- if and .Values.storage.useIscsi .Values.iscsi.enabled .Values.iscsi.targetPortal .Values.iscsi.iqn }}
-      - name: iscsi-storage
-        iscsi:
-          targetPortal: {{ .Values.iscsi.targetPortal }}
-          {{- if .Values.iscsi.portals }}
-          portals: {{ .Values.iscsi.portals | toJson }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          volumeMounts:
+          {{- range $key, $value := .Values.persistence }}
+          {{- if $value.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
           {{- end }}
-          iqn: {{ .Values.iscsi.iqn }}
-          lun: {{ .Values.iscsi.lun }}
-          fsType: {{ .Values.iscsi.fsType }}
-          readOnly: {{ .Values.iscsi.readOnly }}
-          chapAuthSession: false
+          {{- end }}
+      volumes:
+      {{- range $key, $value := .Values.persistence }}
+      {{- if $value.enabled }}
+        - name: {{ $key }}
+        {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "overseerr.fullname" $) $key) }} # Pass top-level context $
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+        {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+        {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+        {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            {{- if $value.portals }}
+            portals: {{ $value.portals | toJson }} # Added portals support
+            {{- end }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+            # chapAuthSession: false # Removed, typically handled by secretRef if needed
+        {{- end }}
       {{- end }}
-
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      terminationGracePeriodSeconds: 30
+      {{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

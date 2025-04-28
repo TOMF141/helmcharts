@@ -1,26 +1,26 @@
-{{- if .Values.persistence.config.enabled }}
-apiVersion: {{ include "huntarr.persistentvolumeclaim.apiVersion" . }}
+{{- range $key, $value := .Values.persistence }}
+{{- if and $value.enabled (eq $value.type "pvc") (empty $value.existingClaim) }}
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "huntarr.fullname" . }}-config
+  name: {{ printf "%s-%s" (include "huntarr.fullname" $) $key }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "huntarr.labels" . | nindent 4 }}
+    # Include standard labels defined in _helpers
+    {{- include "huntarr.labels" $ | nindent 4 | trim }}
+    # Include extra labels defined globally in values.yaml
+    {{- range $labelKey, $labelValue := $.Values.extraLabels }}
+    {{ $labelKey }}: {{ $labelValue | quote }}
+    {{- end }}
 spec:
   accessModes:
-    - {{ .Values.persistence.config.accessMode | quote }}
+    {{- toYaml $value.accessModes | nindent 4 | trim }}
+  {{- if $value.storageClass }}
+  storageClassName: {{ $value.storageClass | quote }}
+  {{- end }}
   resources:
     requests:
-      storage: {{ .Values.persistence.config.size | quote }}
-  {{- if .Values.persistence.config.storageClass }}
-  {{- if (eq "-" .Values.persistence.config.storageClass) }}
-  storageClassName: ""
-  {{- else }}
-  storageClassName: {{ .Values.persistence.config.storageClass | quote }}
-  {{- end }}
-  {{- end }}
-  {{- if .Values.persistence.config.existingClaim }}
-  # If you want to use an existing claim, uncomment the following lines
-  # and ensure the name matches your existing claim.
-  # volumeName: {{ .Values.persistence.config.existingClaim }}
-  {{- end }}
+      storage: {{ $value.size | quote }}
+---
+{{- end }}
 {{- end }}

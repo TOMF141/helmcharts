@@ -96,14 +96,21 @@ triggers:
 targets:
   plex:
     url: {{ .Values.appConfig.targets.plex.url | quote }}
-    {{- if .Values.secretConfig.targets.plex.tokenSecretRef.name }}
-    # Token will be injected by the deployment using the referenced secret
-    token: PLEX_TOKEN_PLACEHOLDER_FROM_SECRETREF
-    {{- else if .Values.secretConfig.targets.plex.token }}
-    # Token is provided directly in values (less secure)
-    token: {{ .Values.secretConfig.targets.plex.token | quote }}
-    {{- else }}
-    # No token provided
-    token: ""
+    {{- /* Add defensive check for tokenSecretRef and its name */}}
+    {{- $plexToken := "" }} {{/* Default to empty token */}}
+    {{- if .Values.secretConfig.targets.plex }}
+      {{- if .Values.secretConfig.targets.plex.tokenSecretRef }}
+        {{- if .Values.secretConfig.targets.plex.tokenSecretRef.name }}
+          {{- /* Token will be injected by the deployment using the referenced secret */}}
+          {{- $plexToken = "PLEX_TOKEN_PLACEHOLDER_FROM_SECRETREF" }}
+        {{- else if .Values.secretConfig.targets.plex.token }}
+          {{- /* Token is provided directly in values (less secure) */}}
+          {{- $plexToken = .Values.secretConfig.targets.plex.token }}
+        {{- end }}
+      {{- else if .Values.secretConfig.targets.plex.token }}
+        {{- /* Token is provided directly in values (less secure) */}}
+        {{- $plexToken = .Values.secretConfig.targets.plex.token }}
+      {{- end }}
     {{- end }}
+    token: {{ $plexToken | quote }}
 {{- end -}}

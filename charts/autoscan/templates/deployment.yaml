@@ -127,7 +127,7 @@ spec:
         - name: {{ $key }}
           {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "autoscan.fullname" .) $key) }}
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "autoscan.fullname" $) $key) }}
           {{- else if eq $value.type "hostPath" }}
           hostPath:
             path: {{ $value.path }}

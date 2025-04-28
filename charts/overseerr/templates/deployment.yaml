@@ -60,8 +60,13 @@ spec:
             - name: {{ .Values.service.name | default "http" }}
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- with .Values.env }}
           env:
-{{ toYaml .Values.env | indent 12 }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
         {{- with .Values.envFrom }}
           envFrom:
 {{ toYaml . | indent 12 }}

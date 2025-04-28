@@ -63,7 +63,7 @@ containerSecurityContext:
   # readOnlyRootFilesystem: true
   runAsUser: 1000 # Example, adjust if needed
   runAsGroup: 1000 # Example, adjust if needed
-  runAsNonRoot: true # Example, adjust if needed
+  # runAsNonRoot: true # Removed to allow s6-overlay init
 
 service:
   # -- Kubernetes service type.

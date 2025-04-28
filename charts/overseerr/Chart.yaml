@@ -2,7 +2,7 @@ apiVersion: v2
 name: overseerr
 description: A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem
 type: application
-version: 1.0.1
+version: 1.0.2
 appVersion: "latest"
 
 keywords:

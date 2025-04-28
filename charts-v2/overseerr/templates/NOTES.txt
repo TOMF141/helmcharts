@@ -1,0 +1,46 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+{{- if .Values.diagnosticMode.enabled }}
+The chart has been deployed in diagnostic mode. All probes have been disabled and the command has been overwritten with:
+
+  command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 4 }}
+  args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 4 }}
+
+Get the list of pods by executing:
+
+  kubectl get pods --namespace {{ include "common.names.namespace" . | quote }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Access the pod you want to debug by executing
+
+  kubectl exec --namespace {{ include "common.names.namespace" . | quote }} -ti <NAME OF THE POD> -- bash
+
+In order to replicate the container startup scripts execute this command:
+
+    # (Entrypoint/CMD specific to Overseerr image if known, otherwise remove this section)
+
+{{- else }}
+
+1. Get the application URL by running these commands:
+{{- if contains "LoadBalancer" .Values.service.type }}
+    export SERVICE_IP=$(kubectl get svc --namespace {{ include "common.names.namespace" . | quote }} {{ template "common.names.fullname" . }} --template "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}")
+    echo "http://${SERVICE_IP}:{{ .Values.service.ports.http }}"
+{{- else if contains "NodePort" .Values.service.type }}
+    export NODE_PORT=$(kubectl get --namespace {{ include "common.names.namespace" . | quote }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "common.names.fullname" . }})
+    export NODE_IP=$(kubectl get nodes --namespace {{ include "common.names.namespace" . | quote }} -o jsonpath="{.items[0].status.addresses[0].address}")
+    echo "http://$NODE_IP:$NODE_PORT"
+{{- else if contains "ClusterIP" .Values.service.type }}
+    export POD_NAME=$(kubectl get pods --namespace {{ include "common.names.namespace" . | quote }} -l "app.kubernetes.io/name={{ include "common.names.name" . }}",app.kubernetes.io/instance={{ .Release.Name }} -o jsonpath="{.items[0].metadata.name}")
+    echo "Visit http://127.0.0.1:8080 to use your application"
+    kubectl --namespace {{ include "common.names.namespace" . | quote }} port-forward $POD_NAME 8080:{{ .Values.deployment.containerPorts.http }}
+{{- end }}
+
+{{- end }}
+
+{{- include "common.warnings.rollingTag" .Values.deployment.image }}
+{{- include "overseerr.validateValues" . }}
+{{- include "common.warnings.modifiedImages" (dict "images" (list .Values.deployment.image) "context" $) }}
+{{- include "common.errors.insecureImages" (dict "images" (list .Values.deployment.image) "context" $) }}

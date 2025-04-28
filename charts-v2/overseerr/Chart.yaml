@@ -1,0 +1,31 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Media
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: "latest"
+dependencies:
+- name: common
+  repository: oci://registry-1.docker.io/bitnamicharts
+  tags:
+  - bitnami-common
+  version: 2.30.0
+description: A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem
+home: https://overseerr.dev/
+icon: https://dyltqmyl993wv.cloudfront.net/downloads/logos/bitnami-mark.png
+keywords:
+- overseerr
+- plex
+- requests
+- media
+maintainers:
+- name: Broadcom, Inc. All Rights Reserved.
+  url: https://github.com/bitnami/charts
+name: overseerr
+sources:
+- https://github.com/bitnami/charts/tree/main/bitnami/common
+- https://github.com/sct/overseerr
+- https://hub.docker.com/r/sctx/overseerr
+version: 0.1.0

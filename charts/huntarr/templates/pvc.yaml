@@ -1,5 +1,14 @@
-{{- range $key, $value := .Values.persistence }}
-{{- if and $value.enabled (eq $value.type "pvc") (empty $value.existingClaim) }}
+{{- /* Initialize flag for separator */ -}}
+{{- $first := true -}}
+{{- range $key, $value := .Values.persistence -}}
+  {{- /* Check conditions to generate PVC */ -}}
+  {{- if and $value.enabled (eq $value.type "pvc") (empty $value.existingClaim) -}}
+    {{- /* Add separator before subsequent PVCs */ -}}
+    {{- if $first -}}
+      {{- $first = false -}}
+    {{- else -}}
+--- # Add separator
+    {{- end -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -7,20 +16,19 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     # Include standard labels defined in _helpers
-    {{- include "huntarr.labels" $ | nindent 4 | trim }}
+    {{- include "huntarr.labels" $ | nindent 4 }}
     # Include extra labels defined globally in values.yaml
     {{- range $labelKey, $labelValue := $.Values.extraLabels }}
     {{ $labelKey }}: {{ $labelValue | quote }}
     {{- end }}
 spec:
   accessModes:
-    {{- toYaml $value.accessModes | nindent 4 | trim }}
+    {{- toYaml $value.accessModes | nindent 4 }}
   {{- if $value.storageClass }}
   storageClassName: {{ $value.storageClass | quote }}
   {{- end }}
   resources:
     requests:
       storage: {{ $value.size | quote }}
----
-{{- end }}
-{{- end }}
+  {{- end }} {{- /* End the 'if' block */ -}}
+{{- end }} {{- /* End the 'range' loop */ -}}

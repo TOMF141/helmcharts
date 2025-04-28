@@ -4,47 +4,48 @@ metadata:
   name: {{ include "huntarr.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "huntarr.labels" . | nindent 4 | trim }}
+    {{- include "huntarr.labels" . | nindent 4 }} # Removed trim
     {{- range $key, $value := .Values.extraLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
   {{- with .Values.deploymentAnnotations }}
   annotations:
-    {{- toYaml . | nindent 4 | trim }}
+    {{- toYaml . | nindent 4 }} # Removed trim
   {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "huntarr.selectorLabels" . | nindent 6 | trim }}
+      {{- include "huntarr.selectorLabels" . | nindent 6 }} # Removed trim
+  # Revert strategy block to use toYaml with nindent
   strategy:
-    {{- toYaml .Values.strategy | nindent 4 | trim }}
+    {{- toYaml .Values.strategy | nindent 4 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}
       labels:
-        {{- include "huntarr.selectorLabels" . | nindent 8 | trim }}
+        {{- include "huntarr.selectorLabels" . | nindent 8 }} # Removed trim
         {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
         {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}
       serviceAccountName: {{ include "huntarr.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.containerSecurityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 | trim }}
+            {{- toYaml . | nindent 12 }} # Removed trim
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -95,7 +96,7 @@ spec:
               value: {{ .Values.appConfig.randomUpgrades | quote }}
             # Add standard env vars if defined
             {{- with .Values.env }}
-            {{- toYaml . | nindent 12 | trim }}
+            {{- toYaml . | nindent 12 }} # Removed trim
             {{- end }}
             # Handle API_KEY based on secretConfig settings
             - name: API_KEY
@@ -127,7 +128,7 @@ spec:
             {{- else if eq .Values.livenessProbe.type "exec" }}
             exec:
               command:
-                {{- toYaml .Values.livenessProbe.command | nindent 16 | trim }}
+                {{- toYaml .Values.livenessProbe.command | nindent 16 }} # Removed trim
             {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -146,7 +147,7 @@ spec:
             {{- else if eq .Values.readinessProbe.type "exec" }}
             exec:
               command:
-                {{- toYaml .Values.readinessProbe.command | nindent 16 | trim }}
+                {{- toYaml .Values.readinessProbe.command | nindent 16 }} # Removed trim
             {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -154,7 +155,7 @@ spec:
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 | trim }}
+            {{- toYaml .Values.resources | nindent 12 }} # Removed trim
           volumeMounts:
             {{- range $key, $value := .Values.persistence }}
             {{- if $value.enabled }}
@@ -171,10 +172,19 @@ spec:
       volumes:
         {{- range $key, $value := .Values.persistence }}
         {{- if $value.enabled }}
+        {{- /* Define PVC name variable outside the YAML structure */}}
+        {{- $pvcName := "" }}
+        {{- if eq $value.type "pvc" }}
+          {{- if $value.existingClaim }}
+            {{- $pvcName = $value.existingClaim }}
+          {{- else }}
+            {{- $pvcName = printf "%s-%s" (include "huntarr.fullname" $) $key }}
+          {{- end }}
+        {{- end }}
         - name: {{ $key }}
           {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "huntarr.fullname" .) $key) }}
+            claimName: {{ $pvcName }}
           {{- else if eq $value.type "hostPath" }}
           hostPath:
             path: {{ $value.path }}
@@ -208,13 +218,13 @@ spec:
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 | trim }}
+        {{- toYaml . | nindent 8 }} # Removed trim
       {{- end }}

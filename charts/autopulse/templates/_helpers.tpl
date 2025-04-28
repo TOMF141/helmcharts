@@ -206,10 +206,23 @@ Define database environment variables based on configuration method.
 # This is the fallback if neither Method 3 nor Method 4 is configured.
 - name: AUTOPULSE__APP__DATABASE_URL
   value: "postgres://{{ include "autopulse.database.username" . }}:$(POSTGRES_PASSWORD)@{{ include "autopulse.database.host" . }}:{{ include "autopulse.database.port" . }}/{{ include "autopulse.database.database" . }}"
-- name: POSTGRES_PASSWORD
+- name: POSTGRES_PASSWORD # Used by the URL variable above
   valueFrom:
     secretKeyRef:
-      # Uses helpers which now always require externalDatabase values
+      name: {{ include "autopulse.database.passwordSecretName" . }}
+      key: {{ include "autopulse.database.passwordSecretKey" . }}
+# Also set standard PostgreSQL environment variables for broader compatibility
+- name: PGHOST
+  value: {{ include "autopulse.database.host" . | quote }}
+- name: PGPORT
+  value: {{ include "autopulse.database.port" . | quote }}
+- name: PGUSER
+  value: {{ include "autopulse.database.username" . | quote }}
+- name: PGDATABASE
+  value: {{ include "autopulse.database.database" . | quote }}
+- name: PGPASSWORD # Duplicate of POSTGRES_PASSWORD, but using standard name
+  valueFrom:
+    secretKeyRef:
       name: {{ include "autopulse.database.passwordSecretName" . }}
       key: {{ include "autopulse.database.passwordSecretKey" . }}
 {{- end }}

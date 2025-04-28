@@ -1,0 +1,20 @@
+annotations:
+  category: Media
+apiVersion: v2
+appVersion: "latest"
+dependencies:
+- name: common
+  repository: oci://registry-1.docker.io/bitnamicharts
+  tags:
+  - bitnami-common
+  version: 2.30.0
+description: A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server
+type: application
+home: https://tautulli.com/
+keywords:
+- tautulli
+- plex
+- monitoring
+- statistics
+name: tautulli
+version: 2.0.0

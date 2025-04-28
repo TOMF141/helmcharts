@@ -116,7 +116,7 @@ livenessProbe:
   enabled: true
   type: httpGet # Options: httpGet, tcpSocket, exec
   path: / # Adjust if autoscan has a specific health endpoint
-  port: { ? { .Values.service.port } } # Use the service port
+  port: 3030 # Use the service port
   initialDelaySeconds: 30
   periodSeconds: 30
   timeoutSeconds: 5
@@ -132,7 +132,7 @@ readinessProbe:
   enabled: true
   type: httpGet # Options: httpGet, tcpSocket, exec
   path: / # Adjust if autoscan has a specific ready endpoint
-  port: { ? { .Values.service.port } } # Use the service port
+  port: 3030 # Use the service port
   initialDelaySeconds: 15
   periodSeconds: 15
   timeoutSeconds: 5

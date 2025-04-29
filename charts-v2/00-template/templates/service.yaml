@@ -1,0 +1,40 @@
+{{- /* Loop through each defined service in the values */}}
+{{- range $index, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  {{- /* Service name includes the name defined in the list item */}}
+  name: {{ include "template.fullname" $ }}-{{ $service.name }}
+  labels:
+    {{- include "template.labels" $ | nindent 4 }}
+    {{- /* Add service-specific labels */}}
+    {{- with $service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- /* Merge service-specific and common annotations */}}
+  {{- with (merge $service.annotations $.Values.commonAnnotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $service.type }}
+  {{- if and (eq $service.type "LoadBalancer") $service.loadBalancerClass }}
+  loadBalancerClass: {{ $service.loadBalancerClass }}
+  {{- end }}
+  ports:
+    {{- range $service.ports }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }} {{/* Target port name or number in the container */}}
+      protocol: {{ .protocol | default "TCP" }}
+      {{- if (and (eq $service.type "NodePort") .nodePort) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+    {{- end }}
+  selector:
+    {{- /* Selector should match the workload pods */}}
+    {{- include "template.selectorLabels" $ | nindent 4 }}
+{{- end }}
+{{- end }}

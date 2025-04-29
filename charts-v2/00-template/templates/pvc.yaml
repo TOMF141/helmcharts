@@ -1,0 +1,36 @@
+{{- /* Check if persistence is enabled and claims are defined */}}
+{{- if and .Values.persistence.enabled .Values.persistence.claims -}}
+{{- /* Loop through each claim defined in values */}}
+{{- range .Values.persistence.claims }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  {{- /* PVC name combines release fullname and the claim name from values */}}
+  name: {{ include "template.fullname" $ }}-{{ .name }}
+  labels:
+    {{- /* Include standard chart labels */}}
+    {{- include "template.labels" $ | nindent 4 }}
+    {{- /* Include any custom labels defined for this specific claim */}}
+    {{- with .labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- /* Merge claim-specific annotations and common annotations */}}
+  {{- with (merge .annotations $.Values.commonAnnotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- /* Use accessModes defined for this claim */}}
+    {{- toYaml .accessModes | nindent 4 }}
+  resources:
+    requests:
+      {{- /* Use storage size defined for this claim */}}
+      storage: {{ .size }}
+  {{- /* Optionally specify storageClassName */}}
+  {{- if .storageClassName }}
+  storageClassName: {{ .storageClassName }}
+  {{- end }}
+{{- end }} {{/* End range .Values.persistence.claims */}}
+{{- end }} {{/* End if .Values.persistence.enabled */}}

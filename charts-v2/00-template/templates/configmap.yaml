@@ -1,0 +1,17 @@
+{{- /* Render ConfigMap only if configmap.enabled is true and existingConfigMap is not provided */}}
+{{- if and .Values.configmap.enabled (not .Values.configmap.existingConfigMap) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "template.fullname" . }}-config # Or choose a different naming convention
+  labels:
+    {{- include "template.labels" . | nindent 4 }}
+  {{- with (merge .Values.configmap.annotations .Values.commonAnnotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- range $key, $value := .Values.configmap.data }}
+  {{ $key }}: {{ $value | quote }} {{- /* Quote ensures value is treated as string */}}
+  {{- end }}
+{{- end -}}

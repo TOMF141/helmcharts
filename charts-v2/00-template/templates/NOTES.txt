@@ -1,0 +1,110 @@
+{{- /*
+NOTES.txt provides information to the user after a successful Helm install.
+It's a good place to explain how to access the application, next steps, etc.
+*/}}
+
+{{- $fullName := include "template.fullname" . -}}
+{{- $namespace := .Release.Namespace -}}
+{{- $ingressEnabled := .Values.ingress.enabled -}}
+{{- $gatewayApiEnabled := .Values.gatewayApi.enabled -}}
+{{- $hasExposedService := false -}}
+
+Your {{ .Chart.Name }} application has been deployed.
+
+{{- /* Iterate through each defined service */}}
+{{- range $index, $service := .Values.services }}
+  {{- if $service.enabled }}
+    {{- $serviceName := printf "%s-%s" $fullName $service.name -}}
+    {{- $serviceType := $service.type -}}
+    {{- $firstServicePort := (first $service.ports).port -}}
+
+    {{- /* Instructions for NodePort */}}
+    {{- if contains "NodePort" $serviceType }}
+      {{- $hasExposedService = true -}}
+      {{- $nodePort := "" -}}
+      {{- range $service.ports }}
+        {{- if .nodePort }}
+          {{- $nodePort = .nodePort -}}
+        {{- end }}
+      {{- end }}
+  Service '{{ $service.name }}' (NodePort):
+      Get the application URL by running these commands:
+      {{- if $nodePort }}
+        export NODE_PORT={{ $nodePort }}
+      {{- else }}
+        export NODE_PORT=$(kubectl get --namespace {{ $namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $serviceName }})
+      {{- end }}
+      export NODE_IP=$(kubectl get nodes --namespace {{ $namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+      echo http://$NODE_IP:$NODE_PORT
+
+    {{- /* Instructions for LoadBalancer */}}
+    {{- else if contains "LoadBalancer" $serviceType }}
+      {{- $hasExposedService = true -}}
+  Service '{{ $service.name }}' (LoadBalancer):
+      Get the application URL by running these commands:
+         NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+               You can watch the status by running 'kubectl get --namespace {{ $namespace }} svc -w {{ $serviceName }}'
+      export SERVICE_IP=$(kubectl get svc --namespace {{ $namespace }} {{ $serviceName }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+      echo http://$SERVICE_IP:{{ $firstServicePort }}
+
+    {{- /* Instructions for ClusterIP (via port-forward) */}}
+    {{- else if contains "ClusterIP" $serviceType }}
+  Service '{{ $service.name }}' (ClusterIP):
+      Can be accessed via port-forwarding:
+      export POD_NAME=$(kubectl get pods --namespace {{ $namespace }} -l "app.kubernetes.io/name={{ include "template.name" $ }},app.kubernetes.io/instance={{ $.Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+      export CONTAINER_PORT={{ (first $service.ports).targetPort }}
+      echo "Visit http://127.0.0.1:8080 to use this service"
+      kubectl --namespace {{ $namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+
+    {{- end }} {{- /* End if service type check */}}
+  {{- end }} {{- /* End if $service.enabled */}}
+{{- end }} {{- /* End range .Values.services */}}
+
+{{- /* Instructions for Ingress */}}
+{{- if $ingressEnabled }}
+  {{- $hasExposedService = true -}}
+  Ingress:
+  {{- range .Values.ingress.hosts }}
+    {{- $host := .host }}
+    {{- range .paths }}
+      {{- if .backend.service.name }}
+  Get the application URL via Ingress host '{{ $host }}' and path '{{ .path }}':
+  echo http://{{ $host }}{{ .path }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- /* Instructions for Gateway API */}}
+{{- if and $gatewayApiEnabled .Values.gatewayApi.httpRoute.enabled }}
+  {{- $hasExposedService = true -}}
+  Gateway API HTTPRoute:
+  {{- with .Values.gatewayApi.httpRoute }}
+    {{- if .hostnames }}
+      {{- range .hostnames }}
+        {{- $host := . }}
+        {{- range $.Values.gatewayApi.httpRoute.rules }}
+          {{- range .matches }}
+            {{- if and .path .path.value }}
+  Get the application URL via Gateway host '{{ $host }}' and path '{{ .path.value }}' (assuming Gateway is configured and accessible):
+  echo http://{{ $host }}{{ .path.value }}
+            {{- else }}
+  Get the application URL via Gateway host '{{ $host }}' (assuming Gateway is configured and accessible):
+  echo http://{{ $host }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- else }}
+  Application deployed with Gateway API HTTPRoute, but no hostnames specified. Access method depends on Gateway configuration.
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- /* Fallback message if no exposed services, ingress, or gateway */}}
+{{- if not $hasExposedService }}
+  Application deployed. No LoadBalancer/NodePort services, Ingress, or Gateway API HTTPRoute are enabled for external access in the current configuration.
+  Check your values.yaml or access the application via other means (e.g., kubectl exec, ClusterIP port-forward).
+{{- end }}
+
+For more information, check the chart README and values.yaml.

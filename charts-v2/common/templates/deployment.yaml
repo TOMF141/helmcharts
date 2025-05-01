@@ -1,21 +1,26 @@
-{{- /* Render StatefulSet only if workloadType is 'statefulset' */}}
-{{- if eq .Values.workloadType "statefulset" -}}
-apiVersion: {{ include "template.statefulset.apiVersion" . }}
-kind: StatefulSet
+{{- /* Render Deployment only if workloadType is 'deployment' */}}
+{{- if eq .Values.workloadType "deployment" -}}
+apiVersion: {{ include "common.deployment.apiVersion" . }}
+kind: Deployment
 metadata:
-  name: {{ include "template.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "template.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
   {{- with (merge .Values.podAnnotations .Values.commonAnnotations) }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ include "template.fullname" . }} # Headless service name, usually matches the StatefulSet name
-  replicas: {{ .Values.statefulset.replicaCount }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  {{- with .Values.deployment.strategy }} {{/* Use deployment specific strategy */}}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
-      {{- include "template.selectorLabels" . | nindent 6 }}
+      {{- include "common.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with (merge .Values.podAnnotations .Values.commonAnnotations) }}
@@ -23,7 +28,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "template.selectorLabels" . | nindent 8 }}
+        {{- include "common.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -36,7 +41,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "template.serviceAccountName" . }}
+      serviceAccountName: {{ include "common.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -53,7 +58,7 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default "" }}" # Use default tag "" if not specified, appVersion removed from library
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- /* Define container ports based on the containerPorts list in values */}}
@@ -62,7 +67,6 @@ spec:
               containerPort: {{ .containerPort }}
               protocol: {{ .protocol | default "TCP" }}
             {{- end }}
-            # Add other ports if needed (e.g., for clustering)
           {{- with .Values.env }}
           env:
             {{- toYaml . | nindent 12 }}
@@ -126,7 +130,7 @@ spec:
             {{- end }}
       volumes:
         {{- /* Add volumes defined in .Values.volumes */}}
-        {{- with .Values.volumes }} # Volumes defined directly in pod spec (not PVCs)
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- /* Add volumes for PVCs defined in .Values.persistence.claims */}}
@@ -134,7 +138,8 @@ spec:
         {{- range .Values.persistence.claims }}
         - name: {{ .name }}
           persistentVolumeClaim:
-            claimName: {{ include "template.fullname" $ }}-{{ .name }}
+            {{- /* Use existingClaim name if provided, otherwise generate the name */}}
+            claimName: {{ .existingClaim | default (printf "%s-%s" (include "common.fullname" $) .name) }}
         {{- end }}
         {{- end }}
       {{- with .Values.nodeSelector }}
@@ -149,13 +154,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  {{- with .Values.statefulset.updateStrategy }}
-  updateStrategy:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  podManagementPolicy: {{ .Values.statefulset.podManagementPolicy | default "OrderedReady" }}
-  {{- with .Values.statefulset.volumeClaimTemplates }}
-  volumeClaimTemplates:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 {{- end }}

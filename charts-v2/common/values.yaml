@@ -414,19 +414,20 @@ volumeMounts: []
 # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
 persistence:
   enabled: false
-  # List of PVCs to create
+  # List of PVCs to create or use
   claims: []
-  # - name: data # Name of the PVC, used for volume name and claim name suffix
+  # - name: data # Name used for volume name and potentially PVC name suffix if created
   #   mountPath: /data # Where to mount the volume in the container
   #   # subPath: "" # Optional: Mount a sub-path of the volume
   #   # readOnly: false # Optional: Mount read-only
-  #   # --- PVC Spec ---
-  #   # storageClassName: "standard" # Optional: Specify StorageClass
+  #   # --- PVC Spec (ignored if existingClaim is set) ---
+  #   existingClaim: "" # Optional: Use an existing PVC instead of creating one. If set, the spec below is ignored.
+  #   storageClassName: "standard" # Optional: Specify StorageClass
   #   accessModes:
   #     - ReadWriteOnce
   #   size: 1Gi # Size of the PVC
-  #   # annotations: {} # Optional: Add annotations to the PVC
-  #   # labels: {} # Optional: Add labels to the PVC
+  #   annotations: {} # Optional: Add annotations to the PVC if created
+  #   labels: {} # Optional: Add labels to the PVC if created
 
 # -- Scheduling Configuration --
 nodeSelector: {}

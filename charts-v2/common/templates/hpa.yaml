@@ -1,10 +1,10 @@
 {{- if .Values.autoscaling.enabled -}}
-apiVersion: {{ include "template.hpa.apiVersion" . }}
+apiVersion: {{ include "common.hpa.apiVersion" . }}
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "template.fullname" . }}
+  name: {{ include "common.fullname" . }}
   labels:
-    {{- include "template.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
   {{- with .Values.commonAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -12,18 +12,18 @@ metadata:
 spec:
   scaleTargetRef:
     {{- if eq .Values.workloadType "statefulset" }}
-    apiVersion: {{ include "template.statefulset.apiVersion" . }}
+    apiVersion: {{ include "common.statefulset.apiVersion" . }}
     kind: StatefulSet
     {{- else if eq .Values.workloadType "deployment" }}
-    apiVersion: {{ include "template.deployment.apiVersion" . }}
+    apiVersion: {{ include "common.deployment.apiVersion" . }}
     kind: Deployment
     {{- else }}
     # HPA doesn't typically target DaemonSets, but including for completeness
     # If targeting a DaemonSet is intended, ensure the HPA controller supports it.
-    apiVersion: {{ include "template.daemonset.apiVersion" . }}
+    apiVersion: {{ include "common.daemonset.apiVersion" . }}
     kind: DaemonSet
     {{- end }}
-    name: {{ include "template.fullname" . }}
+    name: {{ include "common.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

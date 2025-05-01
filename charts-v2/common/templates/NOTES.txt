@@ -3,7 +3,7 @@ NOTES.txt provides information to the user after a successful Helm install.
 It's a good place to explain how to access the application, next steps, etc.
 */}}
 
-{{- $fullName := include "template.fullname" . -}}
+{{- $fullName := include "common.fullname" . -}}
 {{- $namespace := .Release.Namespace -}}
 {{- $ingressEnabled := .Values.ingress.enabled -}}
 {{- $gatewayApiEnabled := .Values.gatewayApi.enabled -}}
@@ -51,7 +51,7 @@ Your {{ .Chart.Name }} application has been deployed.
     {{- else if contains "ClusterIP" $serviceType }}
   Service '{{ $service.name }}' (ClusterIP):
       Can be accessed via port-forwarding:
-      export POD_NAME=$(kubectl get pods --namespace {{ $namespace }} -l "app.kubernetes.io/name={{ include "template.name" $ }},app.kubernetes.io/instance={{ $.Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+      export POD_NAME=$(kubectl get pods --namespace {{ $namespace }} -l "app.kubernetes.io/name={{ include "common.name" $ }},app.kubernetes.io/instance={{ $.Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
       export CONTAINER_PORT={{ (first $service.ports).targetPort }}
       echo "Visit http://127.0.0.1:8080 to use this service"
       kubectl --namespace {{ $namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT

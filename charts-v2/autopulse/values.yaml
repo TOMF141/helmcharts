@@ -1,0 +1,108 @@
+# Values specific to the autopulse deployment, overriding defaults from the common chart.
+
+common:
+  # fullnameOverride: "my-custom-autopulse-name" # Uncomment and set to override the full release name
+
+  # Override workload settings from the common chart
+  workloadType: deployment # Ensure this matches the desired type (deployment, statefulset, etc.)
+
+  image:
+    repository: ghcr.io/dan-online/autopulse
+    # pullPolicy: IfNotPresent # Inherited from common chart unless overridden
+    tag: "latest" # Explicitly set tag, or remove to use common chart's default (appVersion)
+
+  # Define the container port autopulse listens on
+  containerPorts:
+    - name: http
+      containerPort: 2875
+      protocol: TCP
+
+  # Define the service to expose autopulse
+  services:
+    - name: autopulse
+      enabled: true
+      type: ClusterIP # Or NodePort, LoadBalancer as needed
+      ports:
+        - name: http
+          port: 2875
+          targetPort: http
+          protocol: TCP
+      annotations: {}
+      labels: {}
+
+  # Environment variables for autopulse
+  # Provide actual values here or source them from secrets
+  env: {}
+    # Example based on docker run command (consider using secrets instead):
+    # AUTOPULSE__APP__DATABASE_URL: "postgres://postgres:autopulse@postgresql/autopulse"
+
+  # Example of sourcing environment variables from an existing secret:
+  envFrom: {}
+  # - secretRef:
+  #     name: my-autopulse-secrets # Name of the pre-existing secret
+  
+  replicaCount: 1
+  
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  
+  # ingress:
+  #   enabled: false
+
+  # Liveness probe configuration
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+  livenessProbe:
+    enabled: false
+    # httpGet:
+    #   path: /healthz
+    #   port: http # Reference port name from containerPorts
+    # initialDelaySeconds: 30
+    # periodSeconds: 10
+    # timeoutSeconds: 5
+    # failureThreshold: 3
+    # successThreshold: 1
+    # tcpSocket:
+    #   port: http # Reference port name from containerPorts
+    # exec:
+    #   command:
+    #   - cat
+    #   - /tmp/healthy
+
+  # Readiness probe configuration
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+  readinessProbe:
+    enabled: false
+    # httpGet:
+    #   path: /ready
+    #   port: http # Reference port name from containerPorts
+    # initialDelaySeconds: 5
+    # periodSeconds: 5
+    # timeoutSeconds: 3
+    # failureThreshold: 3
+    # successThreshold: 1
+    # tcpSocket:
+    #   port: http # Reference port name from containerPorts
+    # exec:
+    #   command:
+    #   - cat
+    #   - /tmp/ready
+
+  # Startup probe configuration
+  # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-startup-probes
+  startupProbe:
+    enabled: false
+    # httpGet:
+    #   path: /startup
+    #   port: http # Reference port name from containerPorts
+    # initialDelaySeconds: 10
+    # periodSeconds: 5
+    # failureThreshold: 30 # Allows for longer startup times

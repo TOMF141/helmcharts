@@ -1,0 +1,13 @@
+apiVersion: v2
+name: autopulse
+description: A Helm chart for deploying Autopulse using the common library chart
+version: 0.1.0 # Initial version for this application chart
+# appVersion: "latest" # Optional: Specify the application version it deploys, if known
+icon: https://raw.githubusercontent.com/dan-online/autopulse/main/docs/logo.png
+type: application
+
+dependencies:
+- name: common # The name of the chart being depended on
+  version: "0.1.0" # Match the version of your common chart
+  repository: "file://../common" # Path to the local common chart directory
+  alias: common # The alias to use for accessing the common chart's values

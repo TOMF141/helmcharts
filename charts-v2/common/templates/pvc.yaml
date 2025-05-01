@@ -2,15 +2,17 @@
 {{- if and .Values.persistence.enabled .Values.persistence.claims -}}
 {{- /* Loop through each claim defined in values */}}
 {{- range .Values.persistence.claims }}
+{{- /* Only create PVC if existingClaim is not specified */}}
+{{- if not .existingClaim }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   {{- /* PVC name combines release fullname and the claim name from values */}}
-  name: {{ include "template.fullname" $ }}-{{ .name }}
+  name: {{ include "common.fullname" $ }}-{{ .name }}
   labels:
     {{- /* Include standard chart labels */}}
-    {{- include "template.labels" $ | nindent 4 }}
+    {{- include "common.labels" $ | nindent 4 }}
     {{- /* Include any custom labels defined for this specific claim */}}
     {{- with .labels }}
     {{- toYaml . | nindent 4 }}
@@ -32,5 +34,6 @@ spec:
   {{- if .storageClassName }}
   storageClassName: {{ .storageClassName }}
   {{- end }}
+{{- end }} {{/* End if not .existingClaim */}}
 {{- end }} {{/* End range .Values.persistence.claims */}}
 {{- end }} {{/* End if .Values.persistence.enabled */}}

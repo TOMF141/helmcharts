@@ -1,12 +1,12 @@
 {{- /* Check if Gateway API HTTPRoute is enabled */}}
 {{- if and .Values.gatewayApi.enabled .Values.gatewayApi.httpRoute.enabled -}}
-{{- $fullName := include "template.fullname" . -}}
-apiVersion: {{ include "template.gatewayapi.httproute.apiVersion" . }}
+{{- $fullName := include "common.fullname" . -}}
+apiVersion: {{ include "common.gatewayapi.httproute.apiVersion" . }}
 kind: HTTPRoute
 metadata:
   name: {{ default $fullName .Values.gatewayApi.httpRoute.name }}
   labels:
-    {{- include "template.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
     {{- with .Values.gatewayApi.httpRoute.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

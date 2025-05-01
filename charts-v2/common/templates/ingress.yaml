@@ -1,12 +1,12 @@
 {{- /* Check if ingress is enabled */}}
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "template.fullname" . -}}
-apiVersion: {{ include "template.ingress.apiVersion" . }}
+{{- $fullName := include "common.fullname" . -}}
+apiVersion: {{ include "common.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    {{- include "template.labels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
   {{- with (merge .Values.ingress.annotations .Values.commonAnnotations) }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -176,7 +176,6 @@ affinity: {}
 
 # -- Environment variables passed directly to the container.
 # See https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
-# Huntarr configuration is primarily handled via secretConfig below.
 env: {}
   # TZ: Europe/London
   # PUID: 1000 # Huntarr runs as root by default, PUID/PGID might not apply directly
@@ -185,30 +184,11 @@ env: {}
 
 # -- Environment variables sourced from ConfigMaps or Secrets.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
-# Huntarr configuration is primarily handled via secretConfig below.
 envFrom: []
 # - secretRef:
 #     name: my-secret
 # - configMapRef:
 #     name: my-configmap
 
-# -- Huntarr specific configuration (sensitive).
-# Handles the Sonarr API Key. Choose ONE method:
-# 1. Provide apiKey directly (least secure).
-# 2. Use secretName to reference an existing secret containing ONLY the API key.
-# 3. Use configSecretName to reference an existing secret containing ALL config vars (including API_KEY).
-secretConfig:
-  # -- Method 1: Sonarr API Key (ignored if secretName or configSecretName is set)
-  apiKey: "your-api-key" # IMPORTANT: Change this or use a secret
-
-  # -- Method 2: Use an existing secret for the API key ONLY.
-  # Create secret: kubectl create secret generic huntarr-apikey-secret --from-literal=api-key='YOUR_KEY'
-  # -- Name of the existing secret containing ONLY the API key. If set, apiKey above is ignored.
-  secretName: ""
-  # -- The key within the secret specified by secretName that holds the API key.
-  secretApiKeyName: "api-key"
-
-  # -- Method 3: Use an existing secret for ALL configuration values.
-  # Create secret: kubectl create secret generic huntarr-config-secret --from-literal=API_KEY='...' --from-literal=API_URL='...' ...
-  # -- Name of the secret containing all configuration key-value pairs (as env vars). If set, appConfig and apiKey/secretName above are ignored.
-  configSecretName: ""
+# -- Application specific probes
+# Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/

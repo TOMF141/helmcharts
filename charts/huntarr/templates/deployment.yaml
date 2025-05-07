@@ -59,29 +59,13 @@ spec:
             - secretRef:
                 name: {{ .Values.secretConfig.configSecretName }}
           {{- else }}
-          # Otherwise, build env vars from appConfig and handle API_KEY separately
+          # Otherwise, build env vars from appConfig
           env:
             # Add standard env vars if defined
             {{- range $key, $value := .Values.env }}
             - name: {{ $key | quote }}
               value: {{ $value | quote }}
             {{- end }}
-            # Handle API_KEY based on secretConfig settings
-            - name: API_KEY
-            {{- if .Values.secretConfig.secretName }}
-              # Source API_KEY from user-provided existing secret
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretConfig.secretName }}
-                  key: {{ .Values.secretConfig.secretApiKeyName }}
-            {{- else }}
-              # Source API_KEY from chart-managed secret (created by secret.yaml)
-              valueFrom:
-                secretKeyRef:
-                  # This name must match the secret created in secret.yaml
-                  name: {{ include "huntarr.fullname" . }}
-                  key: API_KEY # This key must match the key in secret.yaml
-            {{- end }} # End of secretName check
           {{- end }} # End of configSecretName check
 
           {{- if .Values.livenessProbe.enabled }}

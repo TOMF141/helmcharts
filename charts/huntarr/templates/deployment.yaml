@@ -95,8 +95,9 @@ spec:
             - name: RANDOM_UPGRADES
               value: {{ .Values.appConfig.randomUpgrades | quote }}
             # Add standard env vars if defined
-            {{- with .Values.env }}
-            {{- toYaml . | nindent 12 }} # Removed trim
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
             {{- end }}
             # Handle API_KEY based on secretConfig settings
             - name: API_KEY

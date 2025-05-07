@@ -176,7 +176,7 @@ affinity: {}
 
 # -- Environment variables passed directly to the container.
 # See https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/
-# Huntarr configuration is primarily handled via appConfig/secretConfig below.
+# Huntarr configuration is primarily handled via secretConfig below.
 env: {}
   # TZ: Europe/London
   # PUID: 1000 # Huntarr runs as root by default, PUID/PGID might not apply directly
@@ -185,33 +185,12 @@ env: {}
 
 # -- Environment variables sourced from ConfigMaps or Secrets.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
-# Huntarr configuration is primarily handled via appConfig/secretConfig below.
+# Huntarr configuration is primarily handled via secretConfig below.
 envFrom: []
 # - secretRef:
 #     name: my-secret
 # - configMapRef:
 #     name: my-configmap
-
-# -- Huntarr specific configuration (non-sensitive).
-# Corresponds to environment variables. These are used unless configSecretName is set.
-appConfig:
-  # Required: Sonarr API URL
-  apiUrl: "http://your-sonarr-address:8989" # IMPORTANT: Change this
-  apiTimeout: "60"
-  monitoredOnly: "true"
-  huntMissingShows: "1"
-  huntUpgradeEpisodes: "0"
-  sleepDuration: "900"
-  stateResetIntervalHours: "168"
-  debugMode: "false"
-  enableWebUi: "true"
-  skipFutureEpisodes: "true"
-  skipSeriesRefresh: "false"
-  commandWaitDelay: "1"
-  commandWaitAttempts: "600"
-  minimumDownloadQueueSize: "-1"
-  randomMissing: "true"
-  randomUpgrades: "true"
 
 # -- Huntarr specific configuration (sensitive).
 # Handles the Sonarr API Key. Choose ONE method:

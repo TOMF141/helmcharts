@@ -61,39 +61,6 @@ spec:
           {{- else }}
           # Otherwise, build env vars from appConfig and handle API_KEY separately
           env:
-            # Non-sensitive vars from appConfig
-            - name: API_URL
-              value: {{ .Values.appConfig.apiUrl | quote }}
-            - name: API_TIMEOUT
-              value: {{ .Values.appConfig.apiTimeout | quote }}
-            - name: MONITORED_ONLY
-              value: {{ .Values.appConfig.monitoredOnly | quote }}
-            - name: HUNT_MISSING_SHOWS
-              value: {{ .Values.appConfig.huntMissingShows | quote }}
-            - name: HUNT_UPGRADE_EPISODES
-              value: {{ .Values.appConfig.huntUpgradeEpisodes | quote }}
-            - name: SLEEP_DURATION
-              value: {{ .Values.appConfig.sleepDuration | quote }}
-            - name: STATE_RESET_INTERVAL_HOURS
-              value: {{ .Values.appConfig.stateResetIntervalHours | quote }}
-            - name: DEBUG_MODE
-              value: {{ .Values.appConfig.debugMode | quote }}
-            - name: ENABLE_WEB_UI
-              value: {{ .Values.appConfig.enableWebUi | quote }}
-            - name: SKIP_FUTURE_EPISODES
-              value: {{ .Values.appConfig.skipFutureEpisodes | quote }}
-            - name: SKIP_SERIES_REFRESH
-              value: {{ .Values.appConfig.skipSeriesRefresh | quote }}
-            - name: COMMAND_WAIT_DELAY
-              value: {{ .Values.appConfig.commandWaitDelay | quote }}
-            - name: COMMAND_WAIT_ATTEMPTS
-              value: {{ .Values.appConfig.commandWaitAttempts | quote }}
-            - name: MINIMUM_DOWNLOAD_QUEUE_SIZE
-              value: {{ .Values.appConfig.minimumDownloadQueueSize | quote }}
-            - name: RANDOM_MISSING
-              value: {{ .Values.appConfig.randomMissing | quote }}
-            - name: RANDOM_UPGRADES
-              value: {{ .Values.appConfig.randomUpgrades | quote }}
             # Add standard env vars if defined
             {{- range $key, $value := .Values.env }}
             - name: {{ $key | quote }}

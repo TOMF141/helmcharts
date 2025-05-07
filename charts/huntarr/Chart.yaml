@@ -2,7 +2,7 @@ apiVersion: v2
 name: huntarr
 description: A Helm chart for Huntarr (4sonarr)
 type: application
-version: 0.1.6 # Chart version
+version: 0.1.7 # Chart version
 appVersion: "latest" # Application version (matches image tag)
 
 keywords:

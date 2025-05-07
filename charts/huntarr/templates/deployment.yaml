@@ -53,20 +53,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          {{- if .Values.secretConfig.configSecretName }}
-          # If configSecretName is set, source all env vars from that existing secret
-          envFrom:
-            - secretRef:
-                name: {{ .Values.secretConfig.configSecretName }}
-          {{- else }}
-          # Otherwise, build env vars from appConfig
+          # Define environment variables for the container
           env:
             # Add standard env vars if defined
             {{- range $key, $value := .Values.env }}
             - name: {{ $key | quote }}
               value: {{ $value | quote }}
             {{- end }}
-          {{- end }} # End of configSecretName check
 
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:

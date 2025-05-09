@@ -58,6 +58,10 @@ podSecurityContext: {}
   # runAsGroup: 1000
   # runAsNonRoot: true
 
+# -- Optional init containers for the pod.
+# See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+initContainers: []
+
 # -- Security context for the container.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 containerSecurityContext: {}

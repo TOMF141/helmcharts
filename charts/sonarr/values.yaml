@@ -207,6 +207,19 @@ envFrom: []
 # - configMapRef:
 #     name: my-configmap
 
+# -- Optional extra volumes for the pod.
+extraVolumes: []
+
+# -- Optional extra volume mounts for the main container.
+extraVolumeMounts: []
+
+# ------------------------------------------------------------------------------
+# Node scheduling
+# ------------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
 # ------------------------------------------------------------------------------
 # Application specific configuration (non-sensitive - for config.xml)
 # ------------------------------------------------------------------------------

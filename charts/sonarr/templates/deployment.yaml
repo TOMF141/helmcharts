@@ -140,6 +140,9 @@ spec:
               {{- end }}
             {{- end }}
             {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
       volumes:
         {{- /* Define persistence volumes (PVC or NFS) */}}
         {{- range $key, $value := .Values.persistence }}
@@ -187,6 +190,9 @@ spec:
             items:
               - key: config.xml # Key defined in secret.yaml
                 path: config.xml # Path within the secret volume mount
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

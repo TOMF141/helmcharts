@@ -108,14 +108,16 @@ spec:
               {{- if $value.subPath }}
               subPath: {{ $value.subPath }}
               {{- end }}
-              {{- if $value.readOnly }}
-              readOnly: {{ $value.readOnly }}
-              {{- end }}
             {{- end }}
             {{- end }}
-            {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-            - name: nfs-media # Renamed from plexmedia-nfs for clarity
+            {{- if .Values.nfs.enabled }}
+            - name: nfs-media
               mountPath: {{ .Values.nfs.mountPath | default "/mnt/nfs/media" }} # Use mountPath from values or default
+            {{- end }}
+            {{- if or .Values.secretConfig.existingSecretName (not (empty .Values.secretConfig)) }}
+            - name: app-config
+              mountPath: /config/config.yaml
+              subPath: config.yaml
             {{- end }}
       volumes:
         {{- range $key, $value := .Values.persistence }}
@@ -155,12 +157,17 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
-        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
-        - name: nfs-media # Renamed from plexmedia-nfs
+        {{- if .Values.nfs.enabled }}
+        - name: nfs-media
           nfs:
             server: {{ .Values.nfs.server }}
             path: {{ .Values.nfs.path }}
             # readOnly: true # Add if needed
+        {{- end }}
+        {{- if or .Values.secretConfig.existingSecretName (not (empty .Values.secretConfig)) }}
+        - name: app-config
+          secret:
+            secretName: {{ .Values.secretConfig.existingSecretName | default (printf "%s-config" (include "appname.fullname" .)) }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

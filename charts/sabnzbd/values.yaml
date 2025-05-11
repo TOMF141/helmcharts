@@ -261,6 +261,7 @@ secretConfig:
   # existingSecretName: ""
   # -- The key within the existing secret that holds the sabnzbd.ini content.
   # existingSecretKey: "sabnzbd.ini"
+  existingSecretName: "sabnzbd-ini-on-pvc"
 
   # -- SABnzbd API Key. If existingSecretName is not set, this will be used.
   # If left empty, SABnzbd might generate one on first start.

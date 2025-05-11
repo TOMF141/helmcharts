@@ -125,7 +125,7 @@ spec:
             {{- end }}
             {{- /* Mount sabnzbd.ini from secret into the config volume mount */}}
             {{- if not .Values.secretConfig.existingSecretName }}
-            - name: config # Mount to the same volume as the PVC
+            - name: config-ini-file # Use the new unique volume name
               mountPath: /config/sabnzbd.ini # Mount directly as sabnzbd.ini
               subPath: sabnzbd.ini           # Use the key from the secret
               readOnly: false # Needs to be writable initially if SABnzbd modifies it? Check SABnzbd behavior.
@@ -184,7 +184,7 @@ spec:
         {{- end }}
         {{- /* Define sabnzbd.ini secret volume only if not using existingSecretName */}}
         {{- if not .Values.secretConfig.existingSecretName }}
-        - name: config # Use the same name as the PVC volume for the mount
+        - name: config-ini-file # New unique name
           secret:
             secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
             items:

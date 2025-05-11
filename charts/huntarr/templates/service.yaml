@@ -23,6 +23,8 @@ metadata:
   {{- end }}
 spec:
   type: {{ .Values.service.type }}
+  selector:
+    {{- include "huntarr.selectorLabels" . | nindent 4 }}
   ports:
     - name: http # Matches the port name in deployment.yaml probes
       port: {{ .Values.service.port }}
@@ -31,6 +33,3 @@ spec:
       {{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
-  selector:
-    # Selectors should only use the base selector labels
-    {{- include "huntarr.selectorLabels" . | nindent 4 | trim }}

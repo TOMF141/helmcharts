@@ -250,9 +250,11 @@ appConfig:
     #   connections: 10
     #   enable: 1
 
-    # ------------------------------------------------------------------------------
-    # Application specific configuration (sensitive - for sabnzbd.ini)
-    # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Application specific configuration (sensitive - for sabnzbd.ini)
+# ------------------------------------------------------------------------------
+
+
 secretConfig:
   # -- Set to the name of an existing secret containing the full sabnzbd.ini content.
   # If set, the chart will not render its own sabnzbd.ini secret.

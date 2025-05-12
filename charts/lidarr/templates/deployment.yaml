@@ -124,13 +124,11 @@ spec:
               {{- end }}
             {{- end }}
             {{- end }}
-            {{- /* Mount config.xml from secret into the config volume mount */}}
-            {{- if not .Values.secretConfig.existingSecretName }}
-            - name: config # Mount to the same volume as the PVC
-              mountPath: /config/config.xml # Mount directly as config.xml
-              subPath: config.xml           # Use the key from the secret
-              readOnly: false # Needs to be writable initially if Lidarr modifies it? Check Lidarr behavior.
-            {{- end }}
+            {{- /* Mount config.xml from secret into the config directory */}}
+            - name: config-xml-secret
+              mountPath: /config/config.xml
+              subPath: config.xml
+              readOnly: false # Lidarr might need to write to it on first boot or for changes
             {{- /* Mount other persistence volumes (PVC or NFS) */}}
             {{- range $key, $value := .Values.persistence }}
             {{- if and $value.enabled (ne $key "config") }}
@@ -186,17 +184,19 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
-        {{- /* Define config.xml secret volume only if not using existingSecretName */}}
-        {{- if not .Values.secretConfig.existingSecretName }}
-        - name: config # Use the same name as the PVC volume for the mount
+        {{- /* Define config.xml secret volume */}}
+        - name: config-xml-secret
           secret:
+            {{- if .Values.secretConfig.existingSecretName }}
+            secretName: {{ .Values.secretConfig.existingSecretName }}
+            {{- else }}
             secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
+            {{- end }}
             items:
-              - key: config.xml # Key defined in secret.yaml
+              - key: config.xml # Key defined in secret.yaml or existing secret
                 path: config.xml # Path within the secret volume mount
-        {{- end }}
         {{- with .Values.extraVolumes }}
-          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

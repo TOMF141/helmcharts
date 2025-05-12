@@ -1,0 +1,201 @@
+# Default values for lidarr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
+
+# ------------------------------------------------------------------------------
+# Image configuration
+# ------------------------------------------------------------------------------
+image:
+  repository: lscr.io/linuxserver/lidarr
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
+# ------------------------------------------------------------------------------
+# Number of replicas
+# ------------------------------------------------------------------------------
+replicaCount: 1
+
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate # Default strategy
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+
+# ------------------------------------------------------------------------------
+# Service Account
+# ------------------------------------------------------------------------------
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod. (Original 'labels' moved here)
+podLabels: {} # Add any specific pod labels here if needed
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
+
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Optional init containers for the pod.
+# See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+initContainers: []
+
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# ------------------------------------------------------------------------------
+# Service config
+# ------------------------------------------------------------------------------
+service:
+  # -- Kubernetes service type.
+  type: ClusterIP
+  # -- Service port.
+  port: 8686
+  # -- Service target port. Defaults to the service port.
+  targetPort: 8686
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
+
+# ------------------------------------------------------------------------------
+# Ingress config
+# ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: lidarr.local # Placeholder: Change this
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: lidarr-tls
+  #    hosts:
+  #      - lidarr.local
+
+  # ------------------------------------------------------------------------------
+  # Resource requests & limits
+  # ------------------------------------------------------------------------------
+resources:
+  limits:
+    memory: 4Gi
+  requests:
+    cpu: 50m
+    memory: 256Mi
+
+# ------------------------------------------------------------------------------
+# Liveness probe
+# ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  # type: exec # Defaulting to exec based on command below
+  initialDelaySeconds: 30
+  periodSeconds: 60
+  timeoutSeconds: 10 # Increased timeout for API check
+  failureThreshold: 3 # Added default
+  command: |
+    curl --fail localhost:8686/api/v1/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
+
+# -- Readiness probe configuration. Disabled by default.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+readinessProbe:
+  enabled: false
+  # type: httpGet
+  # path: /
+  # port: http
+  # initialDelaySeconds: 15
+  # periodSeconds: 15
+  # timeoutSeconds: 5
+  # failureThreshold: 3
+
+  # ------------------------------------------------------------------------------
+  # Persistence
+  # ------------------------------------------------------------------------------
+persistence:
+  config:
+    # -- Enable persistence for config volume.
+    enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /config
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
+    size: 1Gi
+    # -- Storage class for the PVC. If "", uses default.
+    storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+  # Define NFS volume under persistence
+  plexmedia: # Keeping this user-specific volume mount
+    enabled: true
+    type: nfs
+    mountPath: /mnt/zpool/plexmedia # Define mount path here
+    server: "10.3.200.151"
+    path: "/mnt/zpool/plexmedia"
+    # readOnly: false
+
+    # ------------------------------------------------------------------------------
+    # Node scheduling
+    # ------------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ------------------------------------------------------------------------------
+# Hostname override
+# ------------------------------------------------------------------------------
+hostname: lidarr
+
+# ------------------------------------------------------------------------------
+# Environment variables
+# ------------------------------------------------------------------------------
+env:
+  # TZ: Europe/London # Example: Set Timezone
+  # PUID: 1000 # Example: Set User ID
+  # PGID: 1000 # Example: Set Group ID
+  UMASK: "000"

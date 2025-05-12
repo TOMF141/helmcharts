@@ -1,0 +1,19 @@
+apiVersion: v2
+name: lidarr
+description: A Helm chart to deploy Lidarr
+type: application
+version: 0.0.1 
+appVersion: "2.0.0" # Check latest Lidarr version
+
+keywords:
+- lidarr
+- music
+- download
+- usenet
+- bittorrent
+
+home: https://lidarr.audio/
+sources:
+- https://github.com/Lidarr/Lidarr
+- https://github.com/linuxserver/docker-lidarr # Source for the specific image used
+- https://lscr.io/linuxserver/lidarr # Image source

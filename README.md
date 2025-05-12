@@ -9,7 +9,6 @@ This repository contains a collection of Helm charts for deploying various appli
 - [Available Charts](#available-charts)
   - [Media Management](#media-management)
   - [Monitoring](#monitoring)
-  - [Database](#database)
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Renovate Integration](#renovate-integration)
@@ -33,20 +32,22 @@ helm repo update
 
 | Chart | Description | Version |
 |-------|-------------|---------|
-| [autoscan](./charts/autoscan/) | A Helm chart to deploy autoscan | 0.1.8 |
-| [huntarr](./charts/huntarr/) | A Helm chart for Huntarr (4sonarr) | 0.1.0 |
-| [overseerr](./charts/overseerr/) | A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem | 0.1.0 |
-| [prowlarr](./charts/prowlarr/) | A Helm chart to deploy Prowlarr | 0.1.2 |
-| [qbittorrent](./charts/qbittorrent/) | A Helm chart to deploy qBittorrent | 0.1.0 |
-| [radarr](./charts/radarr/) | A Helm chart to deploy Radarr | 0.1.4 |
-| [sabnzbd](./charts/sabnzbd/) | A Helm chart for Sabnzbd Usenet downloader | 0.1.1 |
-| [sonarr](./charts/sonarr/) | A Helm chart to deploy Sonarr | 0.1.6 |
+| [autopulse](./charts/autopulse/) | A Helm chart for Autopulse | 1.0.0 |
+| [autoscan](./charts/autoscan/) | A Helm chart to deploy autoscan | 1.0.1 |
+| [huntarr](./charts/huntarr/) | A Helm chart for Huntarr (4sonarr) | 0.1.8 |
+| [lidarr](./charts/lidarr/) | A Helm chart to deploy Lidarr | 0.0.4 |
+| [overseerr](./charts/overseerr/) | A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem | 1.0.2 |
+| [prowlarr](./charts/prowlarr/) | A Helm chart to deploy Prowlarr | 1.0.0 |
+| [qbittorrent](./charts/qbittorrent/) | A Helm chart to deploy qBittorrent | 1.0.2 |
+| [radarr](./charts/radarr/) | A Helm chart to deploy Radarr | 1.0.2 |
+| [sabnzbd](./charts/sabnzbd/) | A Helm chart for Sabnzbd Usenet downloader | 1.0.2 |
+| [sonarr](./charts/sonarr/) | A Helm chart to deploy Sonarr | 1.0.3 |
 
 ### Monitoring
 
 | Chart | Description | Version |
 |-------|-------------|---------|
-| [tautulli](./charts/tautulli/) | A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server | 0.1.6 |
+| [tautulli](./charts/tautulli/) | A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server | 1.0.1 |
 
 ## Usage
 
@@ -136,4 +137,4 @@ charts/<chart-name>/
 
 ## Deployment with ArgoCD
 
-These charts are designed to work seamlessly with ArgoCD for GitOps-based deployments. For more information on using these charts with ArgoCD, refer to the [ArgoCD documentation](../argocd/README.md).
+These charts are designed to work seamlessly with ArgoCD for GitOps-based deployments. For more information on using these charts with ArgoCD, refer to the [ArgoCD documentation](https://github.com/TOMF141/argocd).

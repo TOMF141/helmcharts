@@ -199,3 +199,60 @@ env:
   # PUID: 1000 # Example: Set User ID
   # PGID: 1000 # Example: Set Group ID
   UMASK: "000"
+
+# -- Environment variables sourced from ConfigMaps or Secrets.
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap
+
+# -- Optional extra volumes for the pod.
+extraVolumes: []
+
+# -- Optional extra volume mounts for the main container.
+extraVolumeMounts: []
+
+# ------------------------------------------------------------------------------
+# Application specific configuration (non-sensitive - for config.xml)
+# ------------------------------------------------------------------------------
+appConfig:
+  bindAddress: "*"
+  port: 8686 # Should match service.port
+  sslPort: 9898
+  enableSsl: "False"
+  launchBrowser: "True"
+  authenticationMethod: "External"
+  authenticationRequired: "DisabledForLocalAddresses"
+  branch: "main"
+  logLevel: "info"
+  sslCertPath: ""
+  urlBase: ""
+  instanceName: "Lidarr"
+  updateMechanism: "Docker"
+  # Postgres block (keep disabled if not used)
+  postgres:
+    enabled: false
+    user: ""
+    host: ""
+    port: 5432
+    mainDb: ""
+    logDb: ""
+
+# ------------------------------------------------------------------------------
+# Application specific configuration (sensitive - for config.xml)
+# ------------------------------------------------------------------------------
+secretConfig:
+  # -- Set to the name of an existing secret containing the full config.xml content.
+  # If set, the chart will not render its own config.xml secret.
+  existingSecretName: ""
+  # -- The key within the existing secret that holds the config.xml content.
+  existingSecretKey: "config.xml"
+
+  # -- Lidarr API Key. If existingSecretName is not set, this will be used to render the config.xml secret.
+  apiKey: "xxxxxxxxxxx" # IMPORTANT: Provide API Key here or use existingSecretName
+  # -- SSL Cert Password if needed
+  sslCertPassword: ""
+
+  # -- Postgres password if postgres is enabled
+  postgresPassword: ""

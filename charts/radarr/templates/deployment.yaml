@@ -142,6 +142,9 @@ spec:
             - name: nfs-media
               mountPath: {{ .Values.nfs.mountPath | default "/mnt/nfs/media" }}
             {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
       volumes:
         {{- /* Define PVC volumes */}}
         {{- range $key, $value := .Values.persistence }}
@@ -197,6 +200,9 @@ spec:
             server: {{ .Values.nfs.server }}
             path: {{ .Values.nfs.path }}
             # readOnly: true # Add if needed
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

@@ -121,7 +121,7 @@ spec:
             {{- end }}
             {{- end }}
             {{- /* Mount config.xml from secret into the config volume mount */}}
-            {{- if not .Values.secretConfig.existingSecretName }}
+            {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
             - name: config # Mount to the same volume as the PVC
               mountPath: /config/config.xml # Mount directly as config.xml
               subPath: config.xml           # Use the key from the secret
@@ -139,6 +139,13 @@ spec:
               readOnly: {{ $value.readOnly }}
               {{- end }}
             {{- end }}
+            {{- end }}
+            {{- /* Mount config.xml from user-specified existing Secret */}}
+            {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
+            - name: config-xml-secret-volume
+              mountPath: {{ printf "%s/%s" .Values.persistence.config.mountPath .Values.configXmlFromSecret.fileName }}
+              subPath: {{ .Values.configXmlFromSecret.secretKey }}
+              readOnly: {{ .Values.configXmlFromSecret.readOnly }}
             {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- tpl (toYaml .) $ | nindent 12 }}
@@ -183,13 +190,22 @@ spec:
         {{- end }}
         {{- end }}
         {{- /* Define config.xml secret volume only if not using existingSecretName */}}
-        {{- if not .Values.secretConfig.existingSecretName }}
+        {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
         - name: config # Use the same name as the PVC volume for the mount
           secret:
             secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
             items:
               - key: config.xml # Key defined in secret.yaml
                 path: config.xml # Path within the secret volume mount
+        {{- end }}
+        {{- /* Define volume for config.xml from user-specified existing Secret */}}
+        {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
+        - name: config-xml-secret-volume
+          secret:
+            secretName: {{ .Values.configXmlFromSecret.secretName }}
+            items:
+              - key: {{ .Values.configXmlFromSecret.secretKey }}
+                path: {{ .Values.configXmlFromSecret.secretKey }} # This path is relative to the secret mount, subPath uses this.
         {{- end }}
         {{- with .Values.extraVolumes }}
           {{- tpl (toYaml .) $ | nindent 8 }}

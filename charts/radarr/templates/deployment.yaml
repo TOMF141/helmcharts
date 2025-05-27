@@ -122,7 +122,7 @@ spec:
             - name: config # Mount to the same volume as the PVC
               mountPath: /config/config.xml # Mount directly as config.xml
               subPath: config.xml           # Use the key from the secret
-              readOnly: {{ .Values.persistence.config.mountXmlFromSecret.readOnly | default false }}
+              readOnly: false
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}

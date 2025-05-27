@@ -257,20 +257,3 @@ appConfig:
     mainDb: ""
     logDb: ""
 
-# ------------------------------------------------------------------------------
-# Application specific configuration (sensitive - for config.xml)
-# ------------------------------------------------------------------------------
-secretConfig:
-  # -- Set to the name of an existing secret containing the full config.xml content.
-  # If set, the chart will not render its own config.xml secret.
-  existingSecretName: ""
-  # -- The key within the existing secret that holds the config.xml content.
-  existingSecretKey: "config.xml"
-
-  # -- Lidarr API Key. If existingSecretName is not set, this will be used to render the config.xml secret.
-  apiKey: "xxxxxxxxxxx" # IMPORTANT: Provide API Key here or use existingSecretName
-  # -- SSL Cert Password if needed
-  sslCertPassword: ""
-
-  # -- Postgres password if postgres is enabled
-  postgresPassword: ""

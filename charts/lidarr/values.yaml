@@ -230,30 +230,3 @@ extraVolumes: []
 
 # -- Optional extra volume mounts for the main container.
 extraVolumeMounts: []
-
-# ------------------------------------------------------------------------------
-# Application specific configuration (non-sensitive - for config.xml)
-# ------------------------------------------------------------------------------
-appConfig:
-  bindAddress: "*"
-  port: 8686 # Should match service.port
-  sslPort: 9898
-  enableSsl: "False"
-  launchBrowser: "True"
-  authenticationMethod: "External"
-  authenticationRequired: "DisabledForLocalAddresses"
-  branch: "main"
-  logLevel: "info"
-  sslCertPath: ""
-  urlBase: ""
-  instanceName: "Lidarr"
-  updateMechanism: "Docker"
-  # Postgres block (keep disabled if not used)
-  postgres:
-    enabled: false
-    user: ""
-    host: ""
-    port: 5432
-    mainDb: ""
-    logDb: ""
-

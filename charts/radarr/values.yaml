@@ -218,7 +218,25 @@ env:
   # TZ: Europe/London # Example: Set Timezone
   # PUID: 1000 # Example: Set User ID
   # PGID: 1000 # Example: Set Group ID
-  UMASK: "000"
+  UMASK: "002"
+
+# Optionally mount config.xml from an existing Kubernetes Secret
+# This allows you to manage config.xml in a Secret while the rest of /config uses a PVC.
+configXmlFromSecret:
+  # -- Enable mounting config.xml from an existing Secret.
+  enabled: false
+  # -- The name of the Kubernetes Secret containing the config.xml file.
+  # This Secret must exist in the same namespace as Radarr.
+  secretName: "" # e.g., "radarr-config-xml-secret"
+  # -- The key in the Secret that holds the config.xml content.
+  secretKey: "config.xml"
+  # -- The file name to mount as (e.g., config.xml).
+  # This will be mounted at persistence.config.mountPath + / + fileName
+  # So, by default: /config/config.xml
+  fileName: "config.xml"
+  # -- Mount as readOnly. Radarr might need to write to config.xml initially.
+  # If Radarr modifies config.xml and this is true, changes won't persist to the Secret.
+  readOnly: false
 
 # -- Environment variables sourced from ConfigMaps or Secrets.
 envFrom: []
@@ -226,60 +244,6 @@ envFrom: []
 #     name: my-secret
 # - configMapRef:
 #     name: my-configmap
-
-# ------------------------------------------------------------------------------
-# ConfigMap for Radarr configuration (config.xml)
-# ------------------------------------------------------------------------------
-secretConfig:
-  # -- Enable creation of a Secret for config.xml.
-  enabled: true
-  # -- Name of an existing Secret to use for config.xml. If set, 'enabled' is ignored and no new secret is created.
-  existingSecretName: ""
-  # -- Data for the config.xml file. This will be stored in a Secret.
-  # Ensure this is properly XML formatted and relevant for Radarr.
-  # Example structure:
-  # data:
-  #   config.xml: |
-  #     <Config>
-  #       <ApiKey>YOUR_API_KEY_HERE</ApiKey>
-  #       <LogLevel>Info</LogLevel>
-  #       <Port>7878</Port>
-  #       <SslPort>9898</SslPort>
-  #       <EnableSsl>False</EnableSsl>
-  #       <LaunchBrowser>True</LaunchBrowser>
-  #       <Branch>main</Branch>
-  #       <AuthenticationMethod>None</AuthenticationMethod>
-  #       <AnalyticsEnabled>True</AnalyticsEnabled>
-  #       <UrlBase></UrlBase>
-  #       <BindAddress>*</BindAddress>
-  #       <SslCertPath></SslCertPath>
-  #       <SslCertPassword></SslCertPassword>
-  #       <ProxyEnabled>False</ProxyEnabled>
-  #       <ProxyType>Http</ProxyType>
-  #       <ProxyHostname></ProxyHostname>
-  #       <ProxyPort></ProxyPort>
-  #       <ProxyUsername></ProxyUsername>
-  #       <ProxyPassword></ProxyPassword>
-  #       <ProxyBypassFilter></ProxyBypassFilter>
-  #       <ProxyBypassLocalAddresses>False</ProxyBypassLocalAddresses>
-  #       <UpdateMechanism>Docker</UpdateMechanism>
-  #       <UpdateAutomatically>True</UpdateAutomatically>
-  #       <UpdateScriptPath></UpdateScriptPath>
-  #     </Config>
-  data: {}
-    # config.xml: | 
-    #   <Config>
-    #     <ApiKey>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</ApiKey>
-    #     <LogLevel>info</LogLevel>
-    #     <Port>7878</Port>
-    #     <BindAddress>*</BindAddress>
-    #     <SslPort>9898</SslPort>
-    #     <EnableSsl>False</EnableSsl>
-    #     <LaunchBrowser>True</LaunchBrowser>
-    #     <Branch>main</Branch>
-    #     <AuthenticationMethod>None</AuthenticationMethod>
-    #     <UpdateMechanism>Docker</UpdateMechanism>
-    #   </Config>
 
 # -- Autoscaling configuration
 # See https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/

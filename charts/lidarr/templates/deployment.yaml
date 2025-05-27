@@ -126,7 +126,7 @@ spec:
             {{- end }}
             {{- /* Mount config.xml from secret into the config volume mount */}}
             {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
-            - name: config # Mount to the same volume as the PVC
+            - name: config-xml-chart-secret # Mount to the same volume as the PVC
               mountPath: /config/config.xml # Mount directly as config.xml
               subPath: config.xml           # Use the key from the secret
               readOnly: false
@@ -204,7 +204,7 @@ spec:
         {{- end }}
         {{- /* Define config.xml secret volume only if not using existingSecretName */}}
         {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
-        - name: config # Use the same name as the PVC volume for the mount
+        - name: config-xml-chart-secret # Use the same name as the PVC volume for the mount
           secret:
             {{- if .Values.secretConfig.existingSecretName }}
             secretName: {{ .Values.secretConfig.existingSecretName }}

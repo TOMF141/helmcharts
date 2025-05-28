@@ -104,7 +104,13 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            {{- if not .Values.secretConfig.existingSecretName }}
+            {{- if .Values.secretConfig.existingSecretName }}
+            # Mount the config.xml from an existing secret
+            - name: config-file-secret
+              mountPath: /config/config.xml # Prowlarr expects config.xml here
+              subPath: {{ .Values.secretConfig.existingSecretKey | default "config.xml" }} # Key in the existing secret
+              readOnly: true # Config is managed via secret, should be read-only in pod
+            {{- else }}
             # Mount the config.xml from the chart-managed secret
             - name: config-file-secret
               mountPath: /config/config.xml # Prowlarr expects config.xml here
@@ -124,16 +130,23 @@ spec:
             {{- end }}
             {{- end }}
       volumes:
-        {{- if not .Values.secretConfig.existingSecretName }}
-        # Define the volume for the chart-managed config secret
+        # Define the volume for the config secret (either existing or chart-managed)
         - name: config-file-secret
           secret:
+            {{- if .Values.secretConfig.existingSecretName }}
+            secretName: {{ .Values.secretConfig.existingSecretName }}
+            {{- else }}
             secretName: {{ printf "%s-config" (include "prowlarr.fullname" .) }}
+            {{- end }}
             items:
+              {{- if .Values.secretConfig.existingSecretName }}
+              - key: {{ .Values.secretConfig.existingSecretKey | default "config.xml" }}
+                path: {{ .Values.secretConfig.existingSecretKey | default "config.xml" }}
+              {{- else }}
               # Ensure this key matches the key in secret.yaml and volumeMounts.subPath
               - key: config.xml
                 path: config.xml
-        {{- end }}
+              {{- end }}
         {{- range $key, $value := .Values.persistence }}
         {{- if $value.enabled }}
         - name: {{ $key }}

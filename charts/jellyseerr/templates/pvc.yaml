@@ -1,0 +1,26 @@
+{{- range $key, $value := .Values.persistence }}
+{{- if and $value.enabled (eq $value.type "pvc") (not $value.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-%s" (include "appname.fullname" $) $key }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "appname.labels" $ | nindent 4 }}
+    {{- range $labelKey, $labelValue := $.Values.extraLabels }}
+    {{ $labelKey }}: {{ $labelValue | quote }}
+    {{- end }}
+spec:
+  accessModes:
+    {{- range $value.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ $value.size | quote }}
+  {{- if $value.storageClass }}
+  storageClassName: {{ $value.storageClass | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

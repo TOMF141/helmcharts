@@ -1,0 +1,20 @@
+apiVersion: v2
+name: jellyseerr
+description: A Helm chart to deploy Jellyseerr
+type: application
+version: 0.0.1
+appVersion: "latest"
+
+keywords:
+- jellyseerr
+- media
+- request
+- management
+- plex
+- jellyfin
+- emby
+
+home: https://github.com/Fallenbagel/jellyseerr
+sources:
+- https://github.com/Fallenbagel/jellyseerr
+- https://github.com/fallenbagel/jellyseerr # Source for the image used

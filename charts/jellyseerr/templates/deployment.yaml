@@ -18,7 +18,11 @@ spec:
     matchLabels:
       {{- include "appname.selectorLabels" . | nindent 6 }}
   strategy:
+    {{- if eq .Values.strategy.type "RollingUpdate" }}
     {{- toYaml .Values.strategy | nindent 4 }}
+    {{- else }}
+    type: {{ .Values.strategy.type }}
+    {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -89,10 +93,14 @@ spec:
                   name: {{ .Values.postgres.existingSecret }}
                   key: {{ .Values.postgres.passwordKey }}
             - name: DB_NAME
+              {{- if .Values.postgres.dbNameKey }}
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.postgres.existingSecret }}
                   key: {{ .Values.postgres.dbNameKey }}
+              {{- else }}
+              value: {{ .Values.postgres.dbName | quote }}
+              {{- end }}
             {{- else }}
             - name: DB_HOST
               value: {{ .Values.postgres.host | quote }}

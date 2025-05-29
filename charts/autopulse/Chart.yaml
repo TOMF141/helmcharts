@@ -2,7 +2,7 @@ apiVersion: v2
 name: autopulse
 description: A Helm chart for Autopulse
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "latest" # Placeholder: Replace with application version (consider pinning ghcr.io/dan-online/autopulse version)
 
 keywords:

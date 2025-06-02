@@ -199,6 +199,11 @@ spec:
                 echo "Additional configuration will be applied"
               fi
               
+              # Copy the config file to the actual config directory
+              cp "$TEMP_CONFIG" "$CONFIG_FILE"
+              # Set proper ownership for the config file
+              chown 1000:1000 "$CONFIG_FILE"
+              
               echo "Config file created successfully"
           volumeMounts:
             - name: config-init-volume

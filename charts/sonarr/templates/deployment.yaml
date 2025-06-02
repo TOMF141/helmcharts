@@ -248,7 +248,7 @@ spec:
             {{- end }}
             {{- /* Mount config.xml from secret into the config volume mount */}}
             {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
-            - name: config # Mount to the same volume as the PVC
+            - name: config-xml-chart-secret # Mount to the same volume as the PVC
               mountPath: /config/config.xml # Mount directly as config.xml
               subPath: config.xml           # Use the key from the secret
               readOnly: false # Needs to be writable initially if Sonarr modifies it? Check Sonarr behavior.
@@ -265,6 +265,11 @@ spec:
               readOnly: {{ $value.readOnly }}
               {{- end }}
             {{- end }}
+            {{- end }}
+            {{- /* Mount NFS volume */}}
+            {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+            - name: nfs-media
+              mountPath: {{ .Values.nfs.mountPath }}
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
@@ -317,7 +322,7 @@ spec:
         {{- end }}
         {{- /* Define config.xml secret volume only if not using existingSecretName and not using CloudnativePG */}}
         {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
-        - name: config # Use the same name as the PVC volume for the mount
+        - name: config-xml-chart-secret # Use the same name as the PVC volume for the mount
           secret:
             secretName: {{ printf "%s-config" (include "sonarr.fullname" .) }}
             items:
@@ -339,6 +344,14 @@ spec:
             items:
               - key: {{ .Values.configXmlFromSecret.secretKey }}
                 path: {{ .Values.configXmlFromSecret.secretKey }} # This path is relative to the secret mount, subPath uses this.
+        {{- end }}
+        {{- /* Define NFS volume */}}
+        {{- if and .Values.nfs.enabled .Values.nfs.server .Values.nfs.path }}
+        - name: nfs-media
+          nfs:
+            server: {{ .Values.nfs.server }}
+            path: {{ .Values.nfs.path }}
+            # readOnly: true # Add if needed
         {{- end }}
         {{- with .Values.extraVolumes }}
           {{- tpl (toYaml .) $ | nindent 8 }}

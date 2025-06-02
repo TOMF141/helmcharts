@@ -198,7 +198,32 @@ persistence:
     storageClass: ""
     # -- Use an existing PVC instead of creating one.
     existingClaim: ""
-  # Define NFS volume under persistence
+    # -- Subpath within the volume to mount.
+    subPath: ""
+    # -- For hostPath, the type of the path.
+    hostPathType: "DirectoryOrCreate"
+    # -- For hostPath, the path on the host.
+    path: ""
+    # -- For emptyDir, the medium to use.
+    medium: ""
+    # -- For emptyDir, the size limit.
+    sizeLimit: ""
+    # -- For NFS, the server address.
+    server: ""
+    # -- For NFS, the path on the server.
+    path: ""
+    # -- For NFS, whether to mount as read-only.
+    readOnly: false
+    # -- For iSCSI, the target portal.
+    targetPortal: ""
+    # -- For iSCSI, the iSCSI Qualified Name.
+    iqn: ""
+    # -- For iSCSI, the Logical Unit Number.
+    lun: 0
+    # -- For iSCSI, the filesystem type.
+    fsType: "ext4"
+    # -- For iSCSI, the name of the secret containing credentials.
+    secretRef: ""
 
 
     # ------------------------------------------------------------------------------

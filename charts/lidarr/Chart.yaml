@@ -2,7 +2,7 @@ apiVersion: v2
 name: lidarr
 description: A Helm chart to deploy Lidarr
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: "2.0.0" # Check latest Lidarr version
 
 keywords:

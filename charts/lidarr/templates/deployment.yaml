@@ -102,14 +102,15 @@ spec:
               API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
               {{- end }}
               
-              # Check if config.xml already exists
-              CONFIG_FILE="/config/config.xml"
-              TEMP_CONFIG="/config-init/config.xml"
-              NEW_CONFIG="/config-init/new-config.xml"
+              # Define config file paths
+              CONFIG_DIR="/config"
+              CONFIG_FILE="/shared/config.xml"
+              TEMP_CONFIG="/config-init/temp-config.xml"
               
-              if [ -f "$CONFIG_FILE" ]; then
-                echo "Existing config.xml found, updating only necessary fields"
-                cp "$CONFIG_FILE" "$TEMP_CONFIG"
+              # Check if config.xml already exists in the config directory
+              if [ -f "$CONFIG_DIR/config.xml" ]; then
+                echo "Existing config.xml found in config directory, copying to shared volume"
+                cp "$CONFIG_DIR/config.xml" "$TEMP_CONFIG"
                 
                 # Function to update XML value
                 update_xml_value() {
@@ -203,10 +204,11 @@ spec:
                 echo "Additional configuration will be applied"
               fi
               
-              # Copy the config file to the actual config directory
+              # Copy the updated config to the shared volume
               cp "$TEMP_CONFIG" "$CONFIG_FILE"
+              chmod 644 "$CONFIG_FILE"
               
-              echo "Config file created successfully"
+              echo "Config file created successfully in shared volume"
           volumeMounts:
             - name: config-init-volume
               mountPath: /config-init
@@ -215,6 +217,8 @@ spec:
               {{- if .Values.persistence.config.subPath }}
               subPath: {{ .Values.persistence.config.subPath }}
               {{- end }}
+            - name: shared-config
+              mountPath: /shared
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -283,25 +287,28 @@ spec:
             {{- range $key, $value := .Values.persistence }}
             {{- if and $value.enabled (eq $key "config") }}
             - name: {{ $key }}
-              mountPath: {{ $value.mountPath }}
+              mountPath: /config
               {{- if $value.subPath }}
               subPath: {{ $value.subPath }}
               {{- end }}
             {{- end }}
             {{- end }}
+            - name: shared-config
+              mountPath: /config/config.xml
+              subPath: config.xml
             {{- /* Mount config.xml from secret into the config volume mount */}}
             {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
             - name: config-xml-chart-secret # Mount to the same volume as the PVC
-              mountPath: /config/config.xml # Mount directly as config.xml
-              subPath: config.xml           # Use the key from the secret
+              mountPath: /config/config.xml.secret
+              subPath: config.xml
               readOnly: false
             {{- end }}
-            {{- /* Mount config.xml from init container when CloudnativePG is enabled */}}
+            {{- /* Mount config.xml from shared volume when CloudnativePG is enabled */}}
             {{- if .Values.cloudnativepg.enabled }}
-            - name: config-init-volume
-              mountPath: /config/config.xml # Mount directly as config.xml
-              subPath: config.xml           # Use the file created in init container
-              readOnly: true                # Config is managed via init container
+            - name: shared-config
+              mountPath: /config/config.xml
+              subPath: config.xml
+              readOnly: false
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
@@ -327,6 +334,10 @@ spec:
             {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
       volumes:
+        - name: shared-config
+          emptyDir: {}
+        - name: config-init-volume
+          emptyDir: {}
         {{- /* Define persistence volumes (PVC or NFS) */}}
         {{- range $key, $value := .Values.persistence }}
         {{- if $value.enabled }}

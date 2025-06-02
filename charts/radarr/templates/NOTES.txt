@@ -1,6 +1,6 @@
-{{- $fullName := include "appname.fullname" . -}}
+{{- $fullName := include "radarr.fullname" . -}}
 {{- $servicePort := .Values.service.port -}}
-{{- $chartName := include "appname.name" . }}
+{{- $chartName := include "radarr.name" . }}
 
 {{ $chartName | title }} has been deployed.
 

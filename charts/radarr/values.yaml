@@ -291,6 +291,15 @@ appConfig:
 secretConfig:
   # -- API key for Radarr. If not provided, a random one will be generated.
   apiKey: ""
+  # -- Reference to a secret containing the API key
+  apiKeySecretRef:
+    name: ""
+    key: ""
+  # -- Set to the name of an existing secret containing the full config.xml content.
+  # If set, the chart will not render its own config.xml.
+  existingSecretName: ""
+  # -- The key within the existing secret that holds the config.xml content.
+  existingSecretKey: "config.xml"
   # -- PostgreSQL password (if postgres.enabled is true)
   postgresPassword: ""
 

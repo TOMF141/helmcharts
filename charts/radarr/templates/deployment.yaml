@@ -1,10 +1,10 @@
-apiVersion: {{ include "appname.deployment.apiVersion" . }}
+apiVersion: {{ include "radarr.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ include "appname.fullname" . }}
+  name: {{ include "radarr.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "appname.labels" . | nindent 4 }}
+    {{- include "radarr.labels" . | nindent 4 }}
     {{- range $key, $value := .Values.extraLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -16,7 +16,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "appname.selectorLabels" . | nindent 6 }}
+      {{- include "radarr.selectorLabels" . | nindent 6 }}
   strategy:
     type: {{ .Values.strategy.type }}
     {{- if eq .Values.strategy.type "RollingUpdate" }}
@@ -30,7 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "appname.selectorLabels" . | nindent 8 }}
+        {{- include "radarr.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -39,7 +39,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "appname.serviceAccountName" . }}
+      serviceAccountName: {{ include "radarr.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -80,6 +80,24 @@ spec:
               PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
               PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
               
+              # Get API key from secret if configured
+              {{- if .Values.secretConfig.apiKeySecretRef }}
+              API_KEY_SECRET_NAME="{{ .Values.secretConfig.apiKeySecretRef.name }}"
+              API_KEY_SECRET_KEY="{{ .Values.secretConfig.apiKeySecretRef.key }}"
+              if [ -n "$API_KEY_SECRET_NAME" ] && [ -n "$API_KEY_SECRET_KEY" ]; then
+                echo "Fetching API key from secret $API_KEY_SECRET_NAME in namespace {{ .Release.Namespace }}"
+                API_KEY=$(kubectl get secret -n {{ .Release.Namespace }} $API_KEY_SECRET_NAME -o jsonpath="{.data.$API_KEY_SECRET_KEY}" | base64 -d)
+                if [ -z "$API_KEY" ]; then
+                  echo "Warning: API key not found in secret $API_KEY_SECRET_NAME with key $API_KEY_SECRET_KEY"
+                  API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+                fi
+              else
+                API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+              fi
+              {{- else }}
+              API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+              {{- end }}
+              
               # Check if config.xml already exists
               CONFIG_FILE="/config/config.xml"
               TEMP_CONFIG="/config-init/config.xml"
@@ -119,9 +137,8 @@ spec:
                 update_xml_value "SslPort" "{{ .Values.appConfig.sslPort }}" "$TEMP_CONFIG"
                 update_xml_value "EnableSsl" "{{ .Values.appConfig.enableSsl }}" "$TEMP_CONFIG"
                 update_xml_value "LaunchBrowser" "{{ .Values.appConfig.launchBrowser }}" "$TEMP_CONFIG"
-                {{- if .Values.secretConfig.apiKey }}
-                update_xml_value "ApiKey" "{{ .Values.secretConfig.apiKey }}" "$TEMP_CONFIG"
-                {{- end }}
+                # Update API key with value fetched from secret
+                update_xml_value "ApiKey" "$API_KEY" "$TEMP_CONFIG"
                 update_xml_value "AuthenticationMethod" "{{ .Values.appConfig.authenticationMethod }}" "$TEMP_CONFIG"
                 update_xml_value "AuthenticationRequired" "{{ .Values.appConfig.authenticationRequired }}" "$TEMP_CONFIG"
                 update_xml_value "Branch" "{{ .Values.appConfig.branch }}" "$TEMP_CONFIG"
@@ -149,7 +166,7 @@ spec:
                 <SslPort>{{ .Values.appConfig.sslPort }}</SslPort>
                 <EnableSsl>{{ .Values.appConfig.enableSsl }}</EnableSsl>
                 <LaunchBrowser>{{ .Values.appConfig.launchBrowser }}</LaunchBrowser>
-                <ApiKey>{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}</ApiKey>
+                <ApiKey>$API_KEY</ApiKey>
                 <AuthenticationMethod>{{ .Values.appConfig.authenticationMethod }}</AuthenticationMethod>
                 <AuthenticationRequired>{{ .Values.appConfig.authenticationRequired }}</AuthenticationRequired>
                 <Branch>{{ .Values.appConfig.branch }}</Branch>
@@ -311,7 +328,7 @@ spec:
         - name: {{ $key }}
           {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "appname.fullname" $) $key) }}
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "radarr.fullname" $) $key) }}
           {{- else if eq $value.type "hostPath" }}
           hostPath:
             path: {{ $value.path }}
@@ -347,7 +364,7 @@ spec:
         {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
         - name: config-xml-chart-secret # Use the same name as the PVC volume for the mount
           secret:
-            secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
+            secretName: {{ printf "%s-config" (include "radarr.fullname" .) }}
             items:
               - key: config.xml # Key defined in secret.yaml
                 path: config.xml # Path within the secret volume mount

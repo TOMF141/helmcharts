@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "appname.name" -}}
+{{- define "radarr.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "appname.fullname" -}}
+{{- define "radarr.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "appname.chart" -}}
+{{- define "radarr.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "appname.labels" -}}
-helm.sh/chart: {{ include "appname.chart" . }}
-{{ include "appname.selectorLabels" . }}
+{{- define "radarr.labels" -}}
+helm.sh/chart: {{ include "radarr.chart" . }}
+{{ include "radarr.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,17 +46,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "appname.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "appname.name" . }}
+{{- define "radarr.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "radarr.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "appname.serviceAccountName" -}}
+{{- define "radarr.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "appname.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "radarr.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
@@ -65,7 +65,7 @@ Create the name of the service account to use
 {{/*
 Return the appropriate apiVersion for deployment.
 */}}
-{{- define "appname.deployment.apiVersion" -}}
+{{- define "radarr.deployment.apiVersion" -}}
 {{- if semverCompare ">=1.9-0" .Capabilities.KubeVersion.GitVersion -}}
 apps/v1
 {{- else -}}
@@ -103,4 +103,17 @@ This uses values from .Values.appConfig and .Values.secretConfig.
   <PostgresLogDb>{{ .Values.appConfig.postgres.logDb }}</PostgresLogDb>
   {{- end }}
 </Config>
+{{- end -}}
+
+{{/*
+Helper to get a value from a secret reference
+*/}}
+{{- define "radarr.secretValue" -}}
+{{- $secretRef := .secretRef -}}
+{{- $context := .context -}}
+{{- if and $secretRef.name $secretRef.key -}}
+{{- printf "$(kubectl get secret -n %s %s -o jsonpath='{.data.%s}' | base64 -d)" $context.Release.Namespace $secretRef.name $secretRef.key -}}
+{{- else -}}
+{{- "" -}}
+{{- end -}}
 {{- end -}}

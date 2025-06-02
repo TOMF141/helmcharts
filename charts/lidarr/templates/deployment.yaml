@@ -59,7 +59,6 @@ spec:
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
-            fsGroup: 1000
           resources:
             {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
           command:
@@ -250,14 +249,12 @@ spec:
             - name: config-xml-chart-secret # Mount to the same volume as the PVC
               mountPath: /config/config.xml.secret
               subPath: config.xml
-              readOnly: false
             {{- end }}
             {{- /* Mount config.xml from shared volume when CloudnativePG is enabled */}}
             {{- if .Values.cloudnativepg.enabled }}
             - name: shared-config
               mountPath: /config/config.xml
               subPath: config.xml
-              readOnly: false
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}

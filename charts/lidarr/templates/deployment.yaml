@@ -107,64 +107,9 @@ spec:
               CONFIG_FILE="/shared/config.xml"
               TEMP_CONFIG="/config-init/temp-config.xml"
               
-              # Check if config.xml already exists in the config directory
-              if [ -f "$CONFIG_DIR/config.xml" ]; then
-                echo "Existing config.xml found in config directory, copying to shared volume"
-                cp "$CONFIG_DIR/config.xml" "$TEMP_CONFIG"
-                
-                # Function to update XML value
-                update_xml_value() {
-                  local tag=$1
-                  local value=$2
-                  local file=$3
-                  
-                  # Check if tag exists
-                  if grep -q "<$tag>" "$file"; then
-                    # Replace existing value
-                    sed -i "s|<$tag>.*</$tag>|<$tag>$value</$tag>|g" "$file"
-                  else
-                    # Add new tag before closing Config tag
-                    sed -i "s|</Config>|  <$tag>$value</$tag>\n</Config>|g" "$file"
-                  fi
-                }
-                
-                # Update PostgreSQL settings
-                update_xml_value "PostgresUser" "$PG_USER" "$TEMP_CONFIG"
-                update_xml_value "PostgresPassword" "$PG_PASSWORD" "$TEMP_CONFIG"
-                update_xml_value "PostgresHost" "$PG_HOST" "$TEMP_CONFIG"
-                update_xml_value "PostgresPort" "$PG_PORT" "$TEMP_CONFIG"
-                update_xml_value "PostgresMainDb" "{{ .Values.cloudnativepg.mainDb }}" "$TEMP_CONFIG"
-                update_xml_value "PostgresLogDb" "{{ .Values.cloudnativepg.logDb }}" "$TEMP_CONFIG"
-                
-                # Update other values from appConfig if they're set
-                update_xml_value "BindAddress" "{{ .Values.secretConfig.bindAddress }}" "$TEMP_CONFIG"
-                update_xml_value "Port" "{{ .Values.secretConfig.port }}" "$TEMP_CONFIG"
-                update_xml_value "SslPort" "{{ .Values.secretConfig.sslPort }}" "$TEMP_CONFIG"
-                update_xml_value "EnableSsl" "{{ .Values.secretConfig.enableSsl }}" "$TEMP_CONFIG"
-                update_xml_value "LaunchBrowser" "{{ .Values.secretConfig.launchBrowser }}" "$TEMP_CONFIG"
-                # Update API key with value fetched from secret
-                update_xml_value "ApiKey" "$API_KEY" "$TEMP_CONFIG"
-                update_xml_value "AuthenticationMethod" "{{ .Values.secretConfig.authenticationMethod }}" "$TEMP_CONFIG"
-                update_xml_value "AuthenticationRequired" "{{ .Values.secretConfig.authenticationRequired }}" "$TEMP_CONFIG"
-                update_xml_value "Branch" "{{ .Values.secretConfig.branch }}" "$TEMP_CONFIG"
-                update_xml_value "LogLevel" "{{ .Values.secretConfig.logLevel }}" "$TEMP_CONFIG"
-                update_xml_value "SslCertPath" "{{ .Values.secretConfig.sslCertPath }}" "$TEMP_CONFIG"
-                {{- if .Values.secretConfig.sslCertPassword }}
-                update_xml_value "SslCertPassword" "{{ .Values.secretConfig.sslCertPassword }}" "$TEMP_CONFIG"
-                {{- end }}
-                {{- if .Values.secretConfig.urlBase }}
-                update_xml_value "UrlBase" "{{ .Values.secretConfig.urlBase }}" "$TEMP_CONFIG"
-                {{- end }}
-                {{- if .Values.secretConfig.instanceName }}
-                update_xml_value "InstanceName" "{{ .Values.secretConfig.instanceName }}" "$TEMP_CONFIG"
-                {{- end }}
-                {{- if .Values.secretConfig.updateMechanism }}
-                update_xml_value "UpdateMechanism" "{{ .Values.secretConfig.updateMechanism }}" "$TEMP_CONFIG"
-                {{- end }}
-              else
-                echo "No existing config.xml found, creating new one"
-                # Create a new config.xml with default values and PostgreSQL settings
-                cat > "$TEMP_CONFIG" << EOF
+              # Always create a new config.xml with default values and PostgreSQL settings
+              echo "Creating new config.xml with current values"
+              cat > "$TEMP_CONFIG" << EOF
               <Config>
                 <BindAddress>{{ .Values.secretConfig.bindAddress }}</BindAddress>
                 <Port>{{ .Values.secretConfig.port }}</Port>
@@ -189,7 +134,6 @@ spec:
                 <PostgresLogDb>{{ .Values.cloudnativepg.logDb }}</PostgresLogDb>
               </Config>
               EOF
-              fi
               
               # If additional config secret is provided, merge it
               if [ -n "{{ .Values.additionalConfig.secretRef.name }}" ] && [ -n "{{ .Values.additionalConfig.secretRef.key }}" ]; then

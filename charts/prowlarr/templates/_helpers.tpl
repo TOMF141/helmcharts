@@ -125,8 +125,8 @@ Usage: {{ include "prowlarr.secretValue" (dict "secretRef" .Values.someSecretRef
 {{- if $secret -}}
 {{- index $secret.data $secretRef.key | b64dec -}}
 {{- else -}}
-{{- /* Fail loudly if secret doesn't exist */ -}}
-{{- fail (printf "Secret %q not found in namespace %q" $secretRef.name $context.Release.Namespace) -}}
+{{- /* Use a placeholder value when the secret doesn't exist during template rendering */ -}}
+{{- printf "PLACEHOLDER_WILL_BE_REPLACED_BY_INIT_CONTAINER" -}}
 {{- end -}}
 {{- else -}}
 {{- /* Return empty string if secretRef is not properly defined */ -}}

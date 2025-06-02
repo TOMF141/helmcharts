@@ -1,8 +1,8 @@
 apiVersion: v2
 name: prowlarr
-description: A Helm chart to deploy Prowlarr
+description: A Helm chart for Prowlarr
 type: application
-version: 1.0.3
+version: 1.0.4
 appVersion: "1.0.0"
 
 keywords:

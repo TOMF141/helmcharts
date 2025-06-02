@@ -121,3 +121,10 @@ Usage:
   {{- /* Return empty string if secretRef is incomplete */ -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Alias for configXml to maintain compatibility with secret.yaml
+*/}}
+{{- define "lidarr.configfile" -}}
+{{- include "lidarr.configXml" . -}}
+{{- end -}}

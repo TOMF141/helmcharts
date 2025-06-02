@@ -349,7 +349,7 @@ spec:
         - name: {{ $key }}
           {{- if eq $value.type "pvc" }}
           persistentVolumeClaim:
-            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "appname.fullname" $) $key) }}
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "lidarr.fullname" $) $key) }}
           {{- else if eq $value.type "hostPath" }}
           hostPath:
             path: {{ $value.path }}
@@ -397,7 +397,7 @@ spec:
             {{- if .Values.secretConfig.existingSecretName }}
             secretName: {{ .Values.secretConfig.existingSecretName }}
             {{- else }}
-            secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
+            secretName: {{ printf "%s-config" (include "lidarr.fullname" .) }}
             {{- end }}
             items:
               - key: config.xml # Key defined in secret.yaml or existing secret

@@ -166,21 +166,21 @@ spec:
                 # Create a new config.xml with default values and PostgreSQL settings
                 cat > "$TEMP_CONFIG" << EOF
               <Config>
-                <BindAddress>{{ .Values.appConfig.bindAddress }}</BindAddress>
-                <Port>{{ .Values.appConfig.port }}</Port>
-                <SslPort>{{ .Values.appConfig.sslPort }}</SslPort>
-                <EnableSsl>{{ .Values.appConfig.enableSsl }}</EnableSsl>
-                <LaunchBrowser>{{ .Values.appConfig.launchBrowser }}</LaunchBrowser>
+                <BindAddress>{{ .Values.secretConfig.bindAddress }}</BindAddress>
+                <Port>{{ .Values.secretConfig.port }}</Port>
+                <SslPort>{{ .Values.secretConfig.sslPort }}</SslPort>
+                <EnableSsl>{{ .Values.secretConfig.enableSsl }}</EnableSsl>
+                <LaunchBrowser>{{ .Values.secretConfig.launchBrowser }}</LaunchBrowser>
                 <ApiKey>$API_KEY</ApiKey>
-                <AuthenticationMethod>{{ .Values.appConfig.authenticationMethod }}</AuthenticationMethod>
-                <AuthenticationRequired>{{ .Values.appConfig.authenticationRequired }}</AuthenticationRequired>
-                <Branch>{{ .Values.appConfig.branch }}</Branch>
-                <LogLevel>{{ .Values.appConfig.logLevel }}</LogLevel>
-                <SslCertPath>{{ .Values.appConfig.sslCertPath }}</SslCertPath>
+                <AuthenticationMethod>{{ .Values.secretConfig.authenticationMethod }}</AuthenticationMethod>
+                <AuthenticationRequired>{{ .Values.secretConfig.authenticationRequired }}</AuthenticationRequired>
+                <Branch>{{ .Values.secretConfig.branch }}</Branch>
+                <LogLevel>{{ .Values.secretConfig.logLevel }}</LogLevel>
+                <SslCertPath>{{ .Values.secretConfig.sslCertPath }}</SslCertPath>
                 <SslCertPassword>{{ .Values.secretConfig.sslCertPassword }}</SslCertPassword>
-                <UrlBase>{{ .Values.appConfig.urlBase }}</UrlBase>
-                <InstanceName>{{ .Values.appConfig.instanceName }}</InstanceName>
-                <UpdateMechanism>{{ .Values.appConfig.updateMechanism }}</UpdateMechanism>
+                <UrlBase>{{ .Values.secretConfig.urlBase }}</UrlBase>
+                <InstanceName>{{ .Values.secretConfig.instanceName }}</InstanceName>
+                <UpdateMechanism>{{ .Values.secretConfig.updateMechanism }}</UpdateMechanism>
                 <PostgresUser>$PG_USER</PostgresUser>
                 <PostgresPassword>$PG_PASSWORD</PostgresPassword>
                 <PostgresHost>$PG_HOST</PostgresHost>

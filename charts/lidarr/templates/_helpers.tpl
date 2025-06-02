@@ -99,7 +99,9 @@ Helper to render the config.xml file content for Lidarr.
 {{- end -}}
 
 {{/*
-Helper function to get a value from a Kubernetes secret
+Get a value from a Kubernetes secret
+Usage:
+{{ include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $) }}
 */}}
 {{- define "lidarr.secretValue" -}}
 {{- $secretRef := .secretRef -}}
@@ -117,32 +119,5 @@ Helper function to get a value from a Kubernetes secret
   {{- end -}}
 {{- else -}}
   {{- /* Return empty string if secretRef is incomplete */ -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Get a value from a Kubernetes secret
-Usage:
-{{ include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $) }}
-*/}}
-{{- define "lidarr.secretValue" -}}
-{{- $secretRef := .secretRef -}}
-{{- $context := .context -}}
-{{- if and $secretRef $secretRef.name $secretRef.key -}}
-  {{- $secretObj := (lookup "v1" "Secret" $context.Release.Namespace $secretRef.name) -}}
-  {{- if $secretObj -}}
-    {{- if (hasKey $secretObj.data $secretRef.key) -}}
-      {{- index $secretObj.data $secretRef.key | b64dec -}}
-    {{- else -}}
-      {{- /* Return a placeholder if the key doesn't exist */ -}}
-      {{- printf "placeholder-for-%s-%s" $secretRef.name $secretRef.key -}}
-    {{- end -}}
-  {{- else -}}
-    {{- /* Return a placeholder if the secret doesn't exist */ -}}
-    {{- printf "placeholder-for-%s-%s" $secretRef.name $secretRef.key -}}
-  {{- end -}}
-{{- else -}}
-  {{- /* Return empty if secretRef is not properly defined */ -}}
-  {{- printf "" -}}
 {{- end -}}
 {{- end -}}

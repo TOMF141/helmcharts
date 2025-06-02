@@ -95,11 +95,38 @@ Helper to render the config.xml file content for Lidarr.
   <UpdateMechanism>{{ .Values.appConfig.updateMechanism | default "Docker" }}</UpdateMechanism>
   {{- if and .Values.appConfig.postgres.enabled (not .Values.cloudnativepg.enabled) }}
   <PostgresUser>{{ .Values.appConfig.postgres.user }}</PostgresUser>
-  <PostgresPassword>{{ .Values.secretConfig.postgresPassword }}</PostgresPassword> {{/* Get from secretConfig */}}
+  <PostgresPassword>{{ .Values.secretConfig.postgresPassword | default "" }}</PostgresPassword> {{/* Get from secretConfig */}}
   <PostgresHost>{{ .Values.appConfig.postgres.host }}</PostgresHost>
   <PostgresPort>{{ .Values.appConfig.postgres.port | default 5432 }}</PostgresPort>
   <PostgresMainDb>{{ .Values.appConfig.postgres.mainDb }}</PostgresMainDb>
   <PostgresLogDb>{{ .Values.appConfig.postgres.logDb }}</PostgresLogDb>
   {{- end }}
 </Config>
+{{- end -}}
+
+{{/*
+Get a value from a Kubernetes secret
+Usage:
+{{ include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $) }}
+*/}}
+{{- define "lidarr.secretValue" -}}
+{{- $secretRef := .secretRef -}}
+{{- $context := .context -}}
+{{- if and $secretRef $secretRef.name $secretRef.key -}}
+  {{- $secretObj := (lookup "v1" "Secret" $context.Release.Namespace $secretRef.name) -}}
+  {{- if $secretObj -}}
+    {{- if (hasKey $secretObj.data $secretRef.key) -}}
+      {{- index $secretObj.data $secretRef.key | b64dec -}}
+    {{- else -}}
+      {{- /* Return a placeholder if the key doesn't exist */ -}}
+      {{- printf "placeholder-for-%s-%s" $secretRef.name $secretRef.key -}}
+    {{- end -}}
+  {{- else -}}
+    {{- /* Return a placeholder if the secret doesn't exist */ -}}
+    {{- printf "placeholder-for-%s-%s" $secretRef.name $secretRef.key -}}
+  {{- end -}}
+{{- else -}}
+  {{- /* Return empty if secretRef is not properly defined */ -}}
+  {{- printf "" -}}
+{{- end -}}
 {{- end -}}

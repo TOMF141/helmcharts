@@ -230,3 +230,85 @@ extraVolumes: []
 
 # -- Optional extra volume mounts for the main container.
 extraVolumeMounts: []
+
+# -- Application specific configuration (non-sensitive).
+appConfig:
+  # -- Corresponds to <BindAddress> in config.xml
+  bindAddress: "*"
+  # -- Corresponds to <Port> in config.xml
+  port: 8686
+  # -- Corresponds to <SslPort> in config.xml
+  sslPort: 9898
+  # -- Corresponds to <EnableSsl> in config.xml
+  enableSsl: "False"
+  # -- Corresponds to <LaunchBrowser> in config.xml
+  launchBrowser: "True"
+  # -- Corresponds to <AuthenticationMethod> in config.xml
+  authenticationMethod: "External"
+  # -- Corresponds to <AuthenticationRequired> in config.xml
+  authenticationRequired: "DisabledForLocalAddresses"
+  # -- Corresponds to <Branch> in config.xml
+  branch: "main"
+  # -- Corresponds to <LogLevel> in config.xml
+  logLevel: "info"
+  # -- Corresponds to <SslCertPath> in config.xml
+  sslCertPath: ""
+  # -- Corresponds to <UrlBase> in config.xml
+  urlBase: ""
+  # -- Corresponds to <InstanceName> in config.xml
+  instanceName: "Lidarr"
+  # -- Corresponds to <UpdateMechanism> in config.xml
+  updateMechanism: "Docker"
+
+  # -- Postgres connection details (if enabled)
+  # -- Note: This section is deprecated and will be removed in a future release.
+  # -- Use cloudnativepg integration instead for PostgreSQL database connections.
+  postgres:
+    enabled: false
+    user: ""
+    host: ""
+    port: 5432
+    mainDb: ""
+    logDb: ""
+
+# -- Application specific configuration (sensitive).
+secretConfig:
+  # -- API key for Lidarr. If not provided, a random one will be generated.
+  apiKey: ""
+  # -- SSL certificate password
+  sslCertPassword: ""
+  # -- PostgreSQL password (if postgres.enabled is true)
+  postgresPassword: ""
+
+# -- CloudnativePG integration
+cloudnativepg:
+  # -- Enable CloudnativePG integration
+  enabled: false
+  # -- CloudnativePG cluster name
+  clusterName: ""
+  # -- CloudnativePG cluster namespace
+  namespace: ""
+  # -- Secret name for CloudnativePG credentials (defaults to <clusterName>-app)
+  secretName: ""
+  # -- Main database name
+  mainDb: "lidarr-main"
+  # -- Log database name
+  logDb: "lidarr-log"
+  # -- Init container configuration
+  initContainer:
+    # -- Image to use for the init container
+    image: "bitnami/kubectl:latest"
+    # -- Resource limits for the init container
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+# -- Additional configuration
+additionalConfig:
+  # -- Secret reference for additional configuration
+  secretRef:
+    name: ""
+    key: ""

@@ -64,7 +64,26 @@ The following table lists the configurable parameters of the Lidarr chart and th
 | `configXml.postgres.host`             | PostgreSQL host                                                             | `""`                                       |
 | `configXml.postgres.port`             | PostgreSQL port                                                             | `5432`                                     |
 | `configXml.postgres.mainDb`           | PostgreSQL main database name                                               | `""`                                       |
-| `configXml.postgres.logDb`            | PostgreSQL log database name                                                | `""`                                       |
+| `configXml.postgres.logDb`            | PostgreSQL log database name                                                | `""` |
+
+## CloudnativePG Integration
+
+This chart supports integration with [CloudnativePG](https://cloudnative-pg.io/) for PostgreSQL database connectivity. When enabled, an init container will dynamically fetch database credentials from CloudnativePG secrets and update the Lidarr configuration.
+
+| Parameter                             | Description                                                                 | Default                                    |
+| ------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------ |
+| `cloudnativepg.enabled`               | Enable CloudnativePG integration                                            | `false`                                    |
+| `cloudnativepg.clusterName`           | CloudnativePG cluster name                                                  | `""`                                       |
+| `cloudnativepg.namespace`             | CloudnativePG cluster namespace                                             | `""`                                       |
+| `cloudnativepg.secretName`            | Secret name for CloudnativePG credentials (defaults to <clusterName>-app)   | `""`                                       |
+| `cloudnativepg.mainDb`                | Main database name                                                          | `"lidarr-main"`                            |
+| `cloudnativepg.logDb`                 | Log database name                                                           | `"lidarr-log"`                             |
+| `cloudnativepg.initContainer.image`   | Image to use for the init container                                         | `"bitnami/kubectl:latest"`                 |
+| `cloudnativepg.initContainer.resources` | Resource limits for the init container                                      | See `values.yaml`                           |
+| `additionalConfig.secretRef.name`     | Secret reference for additional configuration                               | `""`                                       |
+| `additionalConfig.secretRef.key`      | Key in the secret for additional configuration                              | `""`                                       |
+
+**Note:** When `cloudnativepg.enabled` is set to `true`, the legacy PostgreSQL configuration in `appConfig.postgres` is ignored, and the static `config.xml` secret is not created. Instead, the init container will fetch database credentials from the CloudnativePG secret and dynamically update or create the `config.xml` file.                                      |
 
 **Configuration Management (`config.xml`)**
 

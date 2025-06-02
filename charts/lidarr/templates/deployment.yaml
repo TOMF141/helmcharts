@@ -56,6 +56,10 @@ spec:
         - name: config-init
           image: {{ .Values.cloudnativepg.initContainer.image }}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
           resources:
             {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
           command:
@@ -201,8 +205,6 @@ spec:
               
               # Copy the config file to the actual config directory
               cp "$TEMP_CONFIG" "$CONFIG_FILE"
-              # Set proper ownership for the config file
-              chown 1000:1000 "$CONFIG_FILE"
               
               echo "Config file created successfully"
           volumeMounts:

@@ -58,20 +58,59 @@ The following table lists the configurable parameters of the Sonarr chart and th
 | `configXml.urlBase`                   | URL base for Sonarr                                                         | `""`                                       |
 | `configXml.instanceName`              | Instance name                                                               | `Sonarr`                                   |
 | `configXml.updateMechanism`           | Update mechanism                                                            | `Docker`                                   |
-| `configXml.postgres.enabled`          | Enable PostgreSQL database backend                                          | `false`                                    |
-| `configXml.postgres.user`             | PostgreSQL username                                                         | `""`                                       |
-| `configXml.postgres.password`         | PostgreSQL password                                                         | `""`                                       |
-| `configXml.postgres.host`             | PostgreSQL host                                                             | `""`                                       |
-| `configXml.postgres.port`             | PostgreSQL port                                                             | `5432`                                     |
-| `configXml.postgres.mainDb`           | PostgreSQL main database name                                               | `""`                                       |
-| `configXml.postgres.logDb`            | PostgreSQL log database name                                                | `""`                                       |
+| `appConfig.bindAddress`              | Bind address for the web interface                                         | `"*"`                                     |
+| `appConfig.port`                      | Port for the web interface                                                 | `8989`                                     |
+| `appConfig.sslPort`                   | SSL port for the web interface                                             | `9898`                                     |
+| `appConfig.enableSsl`                 | Enable SSL for the web interface                                           | `"False"`                                 |
+| `appConfig.launchBrowser`             | Launch browser on startup                                                  | `"True"`                                  |
+| `appConfig.authenticationMethod`      | Authentication method                                                      | `"External"`                              |
+| `appConfig.authenticationRequired`    | Authentication requirement level                                           | `"DisabledForLocalAddresses"`             |
+| `appConfig.branch`                    | Branch to use for updates                                                  | `"main"`                                  |
+| `appConfig.logLevel`                  | Log level                                                                  | `"info"`                                  |
+| `appConfig.sslCertPath`               | SSL certificate path                                                        | `""`                                       |
+| `appConfig.urlBase`                   | URL base                                                                   | `""`                                       |
+| `appConfig.instanceName`              | Instance name                                                              | `"Sonarr"`                                |
+| `appConfig.updateMechanism`           | Update mechanism                                                           | `"Docker"`                                |
+| `appConfig.postgres.enabled`          | Enable legacy PostgreSQL support (when cloudnativepg.enabled=false)        | `false`                                    |
+| `appConfig.postgres.user`             | PostgreSQL username                                                         | `""`                                       |
+| `appConfig.postgres.host`             | PostgreSQL host                                                             | `""`                                       |
+| `appConfig.postgres.port`             | PostgreSQL port                                                             | `5432`                                     |
+| `appConfig.postgres.mainDb`           | PostgreSQL main database name                                               | `""`                                       |
+| `appConfig.postgres.logDb`            | PostgreSQL log database name                                                | `""`                                       |
+| `secretConfig.apiKey`                 | API key for Sonarr                                                         | `""`                                       |
+| `secretConfig.sslCertPassword`        | SSL certificate password                                                    | `""`                                       |
+| `secretConfig.postgresPassword`       | PostgreSQL password (used with appConfig.postgres)                          | `""`                                       |
+| `secretConfig.existingSecretName`     | Use an existing secret for configuration                                   | `""`                                       |
+| `cloudnativepg.enabled`               | Enable CloudnativePG integration                                            | `false`                                    |
+| `cloudnativepg.clusterName`           | CloudnativePG cluster name                                                 | `""`                                       |
+| `cloudnativepg.namespace`             | CloudnativePG namespace                                                    | `""`                                       |
+| `cloudnativepg.secretName`            | CloudnativePG secret name (defaults to <clusterName>-app if not set)       | `""`                                       |
+| `cloudnativepg.mainDbName`            | Main database name                                                         | `"sonarr-main"`                           |
+| `cloudnativepg.logDbName`             | Log database name                                                          | `"sonarr-log"`                            |
+| `cloudnativepg.initContainerImage`    | Init container image                                                       | `"bitnami/kubectl:latest"`                |
+| `additionalConfig.enabled`            | Enable additional configuration                                            | `false`                                    |
+| `additionalConfig.secretName`         | Secret name containing additional configuration                            | `""`                                       |
+| `additionalConfig.secretKey`          | Secret key containing additional configuration                             | `""`                                       |
 
 **Configuration Management (`config.xml`)**
 
-The Sonarr `config.xml` file is managed via a Kubernetes Secret.
+There are three ways to manage Sonarr's `config.xml` file:
 
-*   If `configXml.existingSecret` is set to the name of a pre-existing secret containing a `config.xml` key, that secret will be used.
-*   Otherwise, a new secret named `{{ include "sonarr.fullname" . }}-config` will be created, templated using the values under the `configXml` section.
-*   **Important:** The default `configXml.apiKey` is a placeholder (`xxxxxxxxxxx`). You should either provide a pre-existing secret via `configXml.existingSecret` or set a secure `configXml.apiKey` value when installing the chart if you are not using an existing secret. If left empty when creating a new secret, Sonarr will generate one on first run, but accessing it might require exec-ing into the pod.
+1. **CloudnativePG Integration (Recommended)**
+   * Enable with `cloudnativepg.enabled=true`
+   * Specify the CloudnativePG cluster details (`clusterName`, `namespace`, etc.)
+   * An init container will fetch database credentials from the CloudnativePG secret and dynamically generate or update the `config.xml` file
+   * If an existing `config.xml` is found, only the necessary PostgreSQL settings will be updated, preserving other user customizations
+
+2. **Static Secret (Legacy)**
+   * Used when `cloudnativepg.enabled=false`
+   * If `secretConfig.existingSecretName` is set, that secret will be used
+   * Otherwise, a new secret named `<release-name>-sonarr-config` will be created using values from `appConfig` and `secretConfig`
+   * **Important:** The default `secretConfig.apiKey` is empty and will be auto-generated if not provided. You should set a secure value when installing the chart
+
+3. **Additional Configuration**
+   * Enable with `additionalConfig.enabled=true`
+   * Specify a secret containing additional configuration to merge with the base configuration
+   * This can be used to add custom settings not covered by the standard options
 
 Specify parameters using `--set key=value[,key=value]` on the `helm install` or `helm upgrade` command line. Alternatively, a YAML file that specifies the values for the parameters can be provided using the `-f` flag.

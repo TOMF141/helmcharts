@@ -125,30 +125,29 @@ resources:
     cpu: 50m
     memory: 256Mi
 
-# ------------------------------------------------------------------------------
-# Liveness probe
-# ------------------------------------------------------------------------------
+# -- Liveness probe configuration.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   enabled: true
-  # type: exec # Defaulting to exec based on command below
+  type: httpGet # Changed from exec for standardization
+  path: / # Basic check
+  port: http # References service.port name (8686)
   initialDelaySeconds: 30
-  periodSeconds: 60
-  timeoutSeconds: 10 # Increased timeout for API check
-  failureThreshold: 3 # Added default
-  command: |
-    curl --fail localhost:8686/api/v1/system/status?apiKey=`IFS=\> && while read -d \< E C; do if [[ $E = "ApiKey" ]]; then echo $C; fi; done < /config/config.xml`
+  periodSeconds: 60 # Kept original period
+  timeoutSeconds: 5
+  failureThreshold: 3
 
-# -- Readiness probe configuration. Disabled by default.
+# -- Readiness probe configuration.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 readinessProbe:
-  enabled: false
-  # type: httpGet
-  # path: /
-  # port: http
-  # initialDelaySeconds: 15
-  # periodSeconds: 15
-  # timeoutSeconds: 5
-  # failureThreshold: 3
+  enabled: true
+  type: httpGet
+  path: / # Basic check
+  port: http # References service.port name (8686)
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
 
   # ------------------------------------------------------------------------------
   # Persistence
@@ -231,8 +230,14 @@ extraVolumes: []
 # -- Optional extra volume mounts for the main container.
 extraVolumeMounts: []
 
-# -- Application specific configuration (non-sensitive).
-appConfig:
+# -- Application configuration (both sensitive and non-sensitive).
+secretConfig:
+  # -- API key for Lidarr. If not provided, a random one will be generated.
+  apiKey: ""
+  # -- Reference to a secret containing the API key
+  apiKeySecretRef:
+    name: ""
+    key: ""
   # -- Corresponds to <BindAddress> in config.xml
   bindAddress: "*"
   # -- Corresponds to <Port> in config.xml
@@ -253,32 +258,23 @@ appConfig:
   logLevel: "info"
   # -- Corresponds to <SslCertPath> in config.xml
   sslCertPath: ""
+  # -- SSL certificate password
+  sslCertPassword: ""
+  # -- Reference to a secret containing the SSL certificate password
+  sslCertPasswordSecretRef:
+    name: ""
+    key: ""
   # -- Corresponds to <UrlBase> in config.xml
   urlBase: ""
   # -- Corresponds to <InstanceName> in config.xml
   instanceName: "Lidarr"
   # -- Corresponds to <UpdateMechanism> in config.xml
   updateMechanism: "Docker"
-
-  # -- Postgres connection details (if enabled)
-  # -- Note: This section is deprecated and will be removed in a future release.
-  # -- Use cloudnativepg integration instead for PostgreSQL database connections.
-  postgres:
-    enabled: false
-    user: ""
-    host: ""
-    port: 5432
-    mainDb: ""
-    logDb: ""
-
-# -- Application specific configuration (sensitive).
-secretConfig:
-  # -- API key for Lidarr. If not provided, a random one will be generated.
-  apiKey: ""
-  # -- SSL certificate password
-  sslCertPassword: ""
-  # -- PostgreSQL password (if postgres.enabled is true)
-  postgresPassword: ""
+  # -- Set to the name of an existing secret containing the full config.xml content.
+  # If set, the chart will not render its own config.xml.
+  existingSecretName: ""
+  # -- The key within the existing secret that holds the config.xml content.
+  existingSecretKey: "config.xml"
 
 # -- CloudnativePG integration
 cloudnativepg:

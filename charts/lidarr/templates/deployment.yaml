@@ -1,10 +1,10 @@
-apiVersion: {{ include "appname.deployment.apiVersion" . }}
+apiVersion: {{ include "lidarr.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ include "appname.fullname" . }}
+  name: {{ include "lidarr.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "appname.labels" . | nindent 4 }}
+    {{- include "lidarr.labels" . | nindent 4 }}
     {{- range $key, $value := .Values.extraLabels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -16,7 +16,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "appname.selectorLabels" . | nindent 6 }}
+      {{- include "lidarr.selectorLabels" . | nindent 6 }}
   strategy:
     type: {{ .Values.strategy.type }}
     {{- if eq .Values.strategy.type "RollingUpdate" }}
@@ -30,7 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "appname.selectorLabels" . | nindent 8 }}
+        {{- include "lidarr.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -39,7 +39,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "appname.serviceAccountName" . }}
+      serviceAccountName: {{ include "lidarr.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -137,29 +137,29 @@ spec:
                 update_xml_value "PostgresLogDb" "{{ .Values.cloudnativepg.logDb }}" "$TEMP_CONFIG"
                 
                 # Update other values from appConfig if they're set
-                update_xml_value "BindAddress" "{{ .Values.appConfig.bindAddress }}" "$TEMP_CONFIG"
-                update_xml_value "Port" "{{ .Values.appConfig.port }}" "$TEMP_CONFIG"
-                update_xml_value "SslPort" "{{ .Values.appConfig.sslPort }}" "$TEMP_CONFIG"
-                update_xml_value "EnableSsl" "{{ .Values.appConfig.enableSsl }}" "$TEMP_CONFIG"
-                update_xml_value "LaunchBrowser" "{{ .Values.appConfig.launchBrowser }}" "$TEMP_CONFIG"
+                update_xml_value "BindAddress" "{{ .Values.secretConfig.bindAddress }}" "$TEMP_CONFIG"
+                update_xml_value "Port" "{{ .Values.secretConfig.port }}" "$TEMP_CONFIG"
+                update_xml_value "SslPort" "{{ .Values.secretConfig.sslPort }}" "$TEMP_CONFIG"
+                update_xml_value "EnableSsl" "{{ .Values.secretConfig.enableSsl }}" "$TEMP_CONFIG"
+                update_xml_value "LaunchBrowser" "{{ .Values.secretConfig.launchBrowser }}" "$TEMP_CONFIG"
                 # Update API key with value fetched from secret
                 update_xml_value "ApiKey" "$API_KEY" "$TEMP_CONFIG"
-                update_xml_value "AuthenticationMethod" "{{ .Values.appConfig.authenticationMethod }}" "$TEMP_CONFIG"
-                update_xml_value "AuthenticationRequired" "{{ .Values.appConfig.authenticationRequired }}" "$TEMP_CONFIG"
-                update_xml_value "Branch" "{{ .Values.appConfig.branch }}" "$TEMP_CONFIG"
-                update_xml_value "LogLevel" "{{ .Values.appConfig.logLevel }}" "$TEMP_CONFIG"
-                update_xml_value "SslCertPath" "{{ .Values.appConfig.sslCertPath }}" "$TEMP_CONFIG"
+                update_xml_value "AuthenticationMethod" "{{ .Values.secretConfig.authenticationMethod }}" "$TEMP_CONFIG"
+                update_xml_value "AuthenticationRequired" "{{ .Values.secretConfig.authenticationRequired }}" "$TEMP_CONFIG"
+                update_xml_value "Branch" "{{ .Values.secretConfig.branch }}" "$TEMP_CONFIG"
+                update_xml_value "LogLevel" "{{ .Values.secretConfig.logLevel }}" "$TEMP_CONFIG"
+                update_xml_value "SslCertPath" "{{ .Values.secretConfig.sslCertPath }}" "$TEMP_CONFIG"
                 {{- if .Values.secretConfig.sslCertPassword }}
                 update_xml_value "SslCertPassword" "{{ .Values.secretConfig.sslCertPassword }}" "$TEMP_CONFIG"
                 {{- end }}
-                {{- if .Values.appConfig.urlBase }}
-                update_xml_value "UrlBase" "{{ .Values.appConfig.urlBase }}" "$TEMP_CONFIG"
+                {{- if .Values.secretConfig.urlBase }}
+                update_xml_value "UrlBase" "{{ .Values.secretConfig.urlBase }}" "$TEMP_CONFIG"
                 {{- end }}
-                {{- if .Values.appConfig.instanceName }}
-                update_xml_value "InstanceName" "{{ .Values.appConfig.instanceName }}" "$TEMP_CONFIG"
+                {{- if .Values.secretConfig.instanceName }}
+                update_xml_value "InstanceName" "{{ .Values.secretConfig.instanceName }}" "$TEMP_CONFIG"
                 {{- end }}
-                {{- if .Values.appConfig.updateMechanism }}
-                update_xml_value "UpdateMechanism" "{{ .Values.appConfig.updateMechanism }}" "$TEMP_CONFIG"
+                {{- if .Values.secretConfig.updateMechanism }}
+                update_xml_value "UpdateMechanism" "{{ .Values.secretConfig.updateMechanism }}" "$TEMP_CONFIG"
                 {{- end }}
               else
                 echo "No existing config.xml found, creating new one"
@@ -245,32 +245,37 @@ spec:
           {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            {{- /* Use exec probe for lidarr API check */}}
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.livenessProbe.port }}
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.port }}
+            {{- else if eq .Values.livenessProbe.type "exec" }}
             exec:
-              command:
-              - /usr/bin/env
-              - bash
-              - -c
-              - {{ .Values.livenessProbe.command | quote }}
+              command: {{ toYaml .Values.livenessProbe.command | nindent 16 }}
+            {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 10 }}
-            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
-            successThreshold: 1
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            {{- if .Values.livenessProbe.successThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            {{- end }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
             {{- if eq .Values.readinessProbe.type "httpGet" }}
             httpGet:
               path: {{ .Values.readinessProbe.path }}
-              port: {{ .Values.readinessProbe.port | default "http" }}
+              port: {{ .Values.readinessProbe.port }}
             {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
             tcpSocket:
-              port: {{ .Values.readinessProbe.port | default "http" }}
+              port: {{ .Values.readinessProbe.port }}
             {{- else if eq .Values.readinessProbe.type "exec" }}
             exec:
-              command:
-                {{- toYaml .Values.readinessProbe.command | nindent 16 }}
+              command: {{ toYaml .Values.readinessProbe.command | nindent 16 }}
             {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}

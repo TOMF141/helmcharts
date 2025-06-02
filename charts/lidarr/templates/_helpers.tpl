@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "appname.name" -}}
+{{- define "lidarr.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "appname.fullname" -}}
+{{- define "lidarr.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,16 +27,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "appname.chart" -}}
+{{- define "lidarr.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "appname.labels" -}}
-helm.sh/chart: {{ include "appname.chart" . }}
-{{ include "appname.selectorLabels" . }}
+{{- define "lidarr.labels" -}}
+helm.sh/chart: {{ include "lidarr.chart" . }}
+{{ include "lidarr.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,17 +46,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "appname.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "appname.name" . }}
+{{- define "lidarr.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "lidarr.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "appname.serviceAccountName" -}}
+{{- define "lidarr.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-    {{ default (include "appname.fullname" .) .Values.serviceAccount.name }}
+    {{ default (include "lidarr.fullname" .) .Values.serviceAccount.name }}
 {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
@@ -65,7 +65,7 @@ Create the name of the service account to use
 {{/*
 Return the appropriate apiVersion for deployment.
 */}}
-{{- define "appname.deployment.apiVersion" -}}
+{{- define "lidarr.deployment.apiVersion" -}}
 {{- if semverCompare ">=1.9-0" .Capabilities.KubeVersion.GitVersion -}}
 apps/v1
 {{- else -}}
@@ -76,32 +76,48 @@ apps/v1beta2
 {{/*
 Helper to render the config.xml file content for Lidarr.
 */}}
-{{- define "lidarr.configfile" -}}
+{{- define "lidarr.configXml" -}}
 <Config>
-  <BindAddress>{{ .Values.appConfig.bindAddress | default "*" }}</BindAddress>
-  <Port>{{ .Values.appConfig.port | default 8686 }}</Port>
-  <SslPort>{{ .Values.appConfig.sslPort | default 9898 }}</SslPort>
-  <EnableSsl>{{ .Values.appConfig.enableSsl | default "False" }}</EnableSsl>
-  <LaunchBrowser>{{ .Values.appConfig.launchBrowser | default "True" }}</LaunchBrowser>
-  <ApiKey>{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}</ApiKey> {{/* Default to random if not provided */}}
-  <AuthenticationMethod>{{ .Values.appConfig.authenticationMethod | default "External" }}</AuthenticationMethod>
-  <AuthenticationRequired>{{ .Values.appConfig.authenticationRequired | default "DisabledForLocalAddresses" }}</AuthenticationRequired>
-  <Branch>{{ .Values.appConfig.branch | default "main" }}</Branch>
-  <LogLevel>{{ .Values.appConfig.logLevel | default "info" }}</LogLevel>
-  <SslCertPath>{{ .Values.appConfig.sslCertPath | default "" }}</SslCertPath>
-  <SslCertPassword>{{ .Values.secretConfig.sslCertPassword | default "" }}</SslCertPassword> {{/* Get from secretConfig */}}
-  <UrlBase>{{ .Values.appConfig.urlBase | default "" }}</UrlBase>
-  <InstanceName>{{ .Values.appConfig.instanceName | default "Lidarr" }}</InstanceName>
-  <UpdateMechanism>{{ .Values.appConfig.updateMechanism | default "Docker" }}</UpdateMechanism>
-  {{- if and .Values.appConfig.postgres.enabled (not .Values.cloudnativepg.enabled) }}
-  <PostgresUser>{{ .Values.appConfig.postgres.user }}</PostgresUser>
-  <PostgresPassword>{{ .Values.secretConfig.postgresPassword | default "" }}</PostgresPassword> {{/* Get from secretConfig */}}
-  <PostgresHost>{{ .Values.appConfig.postgres.host }}</PostgresHost>
-  <PostgresPort>{{ .Values.appConfig.postgres.port | default 5432 }}</PostgresPort>
-  <PostgresMainDb>{{ .Values.appConfig.postgres.mainDb }}</PostgresMainDb>
-  <PostgresLogDb>{{ .Values.appConfig.postgres.logDb }}</PostgresLogDb>
-  {{- end }}
+  <BindAddress>{{ .Values.secretConfig.bindAddress | default "*" }}</BindAddress>
+  <Port>{{ .Values.secretConfig.port | default 8686 }}</Port>
+  <SslPort>{{ .Values.secretConfig.sslPort | default 9898 }}</SslPort>
+  <EnableSsl>{{ .Values.secretConfig.enableSsl | default "False" }}</EnableSsl>
+  <LaunchBrowser>{{ .Values.secretConfig.launchBrowser | default "True" }}</LaunchBrowser>
+  {{- /* Handle apiKey potentially coming from a secret */}}
+  <ApiKey>{{ default .Values.secretConfig.apiKey (include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) | default (randAlphaNum 32) }}</ApiKey>
+  <AuthenticationMethod>{{ .Values.secretConfig.authenticationMethod | default "External" }}</AuthenticationMethod>
+  <AuthenticationRequired>{{ .Values.secretConfig.authenticationRequired | default "DisabledForLocalAddresses" }}</AuthenticationRequired>
+  <Branch>{{ .Values.secretConfig.branch | default "main" }}</Branch>
+  <LogLevel>{{ .Values.secretConfig.logLevel | default "info" }}</LogLevel>
+  <SslCertPath>{{ .Values.secretConfig.sslCertPath | default "" }}</SslCertPath>
+  {{- /* Handle sslCertPassword potentially coming from a secret */}}
+  <SslCertPassword>{{ default .Values.secretConfig.sslCertPassword (include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.sslCertPasswordSecretRef "context" $)) | default "" }}</SslCertPassword>
+  <UrlBase>{{ .Values.secretConfig.urlBase | default "" }}</UrlBase>
+  <InstanceName>{{ .Values.secretConfig.instanceName | default "Lidarr" }}</InstanceName>
+  <UpdateMechanism>{{ .Values.secretConfig.updateMechanism | default "Docker" }}</UpdateMechanism>
 </Config>
+{{- end -}}
+
+{{/*
+Helper function to get a value from a Kubernetes secret
+*/}}
+{{- define "lidarr.secretValue" -}}
+{{- $secretRef := .secretRef -}}
+{{- $context := .context -}}
+{{- if and $secretRef $secretRef.name $secretRef.key -}}
+  {{- $secretObj := (lookup "v1" "Secret" $context.Release.Namespace $secretRef.name) -}}
+  {{- if $secretObj -}}
+    {{- if (hasKey $secretObj.data $secretRef.key) -}}
+      {{- index $secretObj.data $secretRef.key | b64dec -}}
+    {{- else -}}
+      {{- /* Return empty string if key doesn't exist */ -}}
+    {{- end -}}
+  {{- else -}}
+    {{- /* Return empty string if secret doesn't exist */ -}}
+  {{- end -}}
+{{- else -}}
+  {{- /* Return empty string if secretRef is incomplete */ -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

@@ -100,7 +100,8 @@ Reads values from .Values.secretConfig.
   <InstanceName>{{ .Values.secretConfig.instanceName }}</InstanceName>
   <UpdateMechanism>{{ .Values.secretConfig.updateMechanism }}</UpdateMechanism>
 
-  {{- if .Values.secretConfig.postgres.enabled }}
+  {{- /* Postgres settings are now handled by the CloudnativePG integration when enabled */}}
+  {{- if and (not .Values.cloudnativepg.enabled) .Values.secretConfig.postgres.enabled }}
   <PostgresUser>{{ .Values.secretConfig.postgres.user }}</PostgresUser>
   {{- /* Handle postgres password potentially coming from a secret */}}
   <PostgresPassword>{{ default .Values.secretConfig.postgres.password (include "prowlarr.secretValue" (dict "secretRef" .Values.secretConfig.postgres.passwordSecretRef "context" $)) }}</PostgresPassword>

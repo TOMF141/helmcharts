@@ -266,6 +266,8 @@ secretConfig:
   updateMechanism: "Docker"
 
   # -- Postgres connection details (if enabled)
+  # -- Note: This section is deprecated and will be removed in a future release.
+  # -- Use cloudnativepg integration instead for PostgreSQL database connections.
   postgres:
     enabled: false
     user: ""
@@ -278,3 +280,40 @@ secretConfig:
     port: ""
     mainDb: ""
     logDb: ""
+
+# -- CloudnativePG integration
+cloudnativepg:
+  # -- Enable CloudnativePG integration
+  enabled: false
+  # -- Name of the CloudnativePG cluster
+  clusterName: ""
+  # -- Namespace where the CloudnativePG cluster is deployed
+  namespace: ""
+  # -- Secret name for CloudnativePG credentials (defaults to <clusterName>-app if not specified)
+  secretName: ""
+  # -- Database name for main database
+  mainDb: "prowlarr-main"
+  # -- Database name for log database
+  logDb: "prowlarr-log"
+  # -- Init container configuration
+  initContainer:
+    # -- Image for the init container
+    image: "bitnami/kubectl:latest"
+    # -- Image pull policy for the init container
+    imagePullPolicy: IfNotPresent
+    # -- Resources for the init container
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+# -- Additional configuration for config.xml
+additionalConfig:
+  # -- Secret containing additional configuration values
+  secretRef:
+    # -- Name of the secret containing additional configuration values
+    name: ""
+    # -- Key in the secret containing the values
+    key: ""

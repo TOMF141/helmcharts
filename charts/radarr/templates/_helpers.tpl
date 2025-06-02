@@ -94,7 +94,7 @@ This uses values from .Values.appConfig and .Values.secretConfig.
   <UrlBase>{{ .Values.appConfig.urlBase | default "" }}</UrlBase>
   <InstanceName>{{ .Values.appConfig.instanceName | default "Radarr" }}</InstanceName>
   <UpdateMechanism>{{ .Values.appConfig.updateMechanism | default "Docker" }}</UpdateMechanism>
-  {{- if .Values.appConfig.postgres.enabled }}
+  {{- if and .Values.appConfig.postgres.enabled (not .Values.cloudnativepg.enabled) }}
   <PostgresUser>{{ .Values.appConfig.postgres.user }}</PostgresUser>
   <PostgresPassword>{{ .Values.secretConfig.postgresPassword }}</PostgresPassword>
   <PostgresHost>{{ .Values.appConfig.postgres.host }}</PostgresHost>

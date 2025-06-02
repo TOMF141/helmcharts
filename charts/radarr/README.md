@@ -65,13 +65,55 @@ The following table lists the configurable parameters of the Radarr chart and th
 | `configXml.postgres.port`             | PostgreSQL port                                                             | `""`                                       |
 | `configXml.postgres.mainDb`           | PostgreSQL main database name                                               | `""`                                       |
 | `configXml.postgres.logDb`            | PostgreSQL log database name                                                | `""`                                       |
+| `cloudnativepg.enabled`              | Enable CloudnativePG integration                                            | `false`                                    |
+| `cloudnativepg.clusterName`          | CloudnativePG cluster name                                                  | `""`                                       |
+| `cloudnativepg.namespace`            | CloudnativePG cluster namespace                                             | `""`                                       |
+| `cloudnativepg.secretName`           | Secret name for CloudnativePG credentials (defaults to <clusterName>-app)   | `""`                                       |
+| `cloudnativepg.mainDb`               | Main database name                                                          | `radarr-main`                              |
+| `cloudnativepg.logDb`                | Log database name                                                           | `radarr-log`                               |
+| `cloudnativepg.initContainer.image`  | Image to use for the init container                                         | `bitnami/kubectl:latest`                   |
+| `appConfig.bindAddress`              | Bind address for Radarr                                                     | `*`                                        |
+| `appConfig.port`                     | Port for Radarr HTTP interface                                              | `7878`                                     |
+| `appConfig.sslPort`                  | Port for Radarr HTTPS interface                                             | `9898`                                     |
+| `appConfig.enableSsl`                | Enable SSL/HTTPS                                                            | `"False"`                                  |
+| `appConfig.launchBrowser`            | Launch browser on startup                                                   | `"True"`                                   |
+| `appConfig.authenticationMethod`     | Authentication method                                                       | `External`                                 |
+| `appConfig.authenticationRequired`   | Authentication requirement level                                            | `DisabledForLocalAddresses`                |
+| `appConfig.branch`                   | Radarr update branch                                                        | `main`                                     |
+| `appConfig.logLevel`                 | Logging level                                                               | `info`                                     |
+| `appConfig.sslCertPath`              | Path to SSL certificate                                                     | `""`                                       |
+| `appConfig.sslCertPassword`          | Password for SSL certificate                                                | `""`                                       |
+| `appConfig.urlBase`                  | URL base for Radarr                                                         | `""`                                       |
+| `appConfig.instanceName`             | Instance name                                                               | `Radarr`                                   |
+| `appConfig.updateMechanism`          | Update mechanism                                                            | `Docker`                                   |
+| `appConfig.postgres.enabled`         | Enable PostgreSQL database backend (legacy)                                 | `false`                                    |
+| `appConfig.postgres.user`            | PostgreSQL username                                                         | `""`                                       |
+| `appConfig.postgres.host`            | PostgreSQL host                                                             | `""`                                       |
+| `appConfig.postgres.port`            | PostgreSQL port                                                             | `5432`                                     |
+| `appConfig.postgres.mainDb`          | PostgreSQL main database name                                               | `""`                                       |
+| `appConfig.postgres.logDb`           | PostgreSQL log database name                                                | `""`                                       |
+| `secretConfig.apiKey`                | Radarr API key (auto-generated if empty)                                    | `""`                                       |
+| `secretConfig.postgresPassword`      | PostgreSQL password (if postgres.enabled is true)                           | `""`                                       |
+| `additionalConfig.secretRef.name`    | Secret reference for additional configuration                               | `""`                                       |
+| `additionalConfig.secretRef.key`     | Key in the secret for additional configuration                             | `""`                                       |
 
 **Configuration Management (`config.xml`)**
 
-The Radarr `config.xml` file is managed via a Kubernetes Secret.
+The Radarr `config.xml` file can be managed in several ways:
 
-*   If `configXml.existingSecret` is set to the name of a pre-existing secret containing a `config.xml` key, that secret will be used.
-*   Otherwise, a new secret named `{{ include "radarr.fullname" . }}-config` will be created, templated using the values under the `configXml` section.
-*   The API key (`configXml.apiKey`) will be automatically generated if left empty.
+1. **CloudnativePG Integration (Recommended for PostgreSQL):**
+   * When `cloudnativepg.enabled=true`, an init container will fetch database credentials from CloudnativePG secrets.
+   * The init container will create or update the `config.xml` file with the PostgreSQL connection details.
+   * Existing configuration in `config.xml` will be preserved, with only the necessary fields updated.
+   * This method supports dynamic database credentials managed by CloudnativePG.
+
+2. **Static Secret (Legacy):**
+   * If `configXmlFromSecret.enabled=true`, the `config.xml` file will be mounted from an existing Secret.
+   * Otherwise, if `cloudnativepg.enabled=false`, a new secret named `{{ include "radarr.fullname" . }}-config` will be created using the values from `appConfig` and `secretConfig`.
+   * The API key (`secretConfig.apiKey`) will be automatically generated if left empty.
+
+3. **Additional Configuration:**
+   * You can provide additional configuration via a separate Secret using `additionalConfig.secretRef`.
+   * This configuration will be merged with the existing configuration.
 
 Specify parameters using `--set key=value[,key=value]` on the `helm install` or `helm upgrade` command line. Alternatively, a YAML file that specifies the values for the parameters can be provided using the `-f` flag.

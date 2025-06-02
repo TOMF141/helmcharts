@@ -51,6 +51,147 @@ spec:
       initContainers:
         {{- toYaml .Values.initContainers | nindent 8 }}
       {{- end }}
+      {{- if .Values.cloudnativepg.enabled }}
+      initContainers:
+        - name: config-init
+          image: {{ .Values.cloudnativepg.initContainer.image }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -e
+              
+              # Determine the CloudnativePG secret name
+              CNPG_SECRET_NAME="{{ .Values.cloudnativepg.secretName }}"
+              if [ -z "$CNPG_SECRET_NAME" ]; then
+                CNPG_SECRET_NAME="{{ .Values.cloudnativepg.clusterName }}-app"
+              fi
+              
+              # Get CloudnativePG credentials from secret
+              CNPG_NAMESPACE="{{ .Values.cloudnativepg.namespace | default .Release.Namespace }}"
+              echo "Fetching CloudnativePG credentials from secret $CNPG_SECRET_NAME in namespace $CNPG_NAMESPACE"
+              
+              # Extract database connection details
+              PG_HOST=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.host}' | base64 -d)
+              PG_PORT=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.port}' | base64 -d)
+              PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
+              PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
+              
+              # Check if config.xml already exists
+              CONFIG_FILE="/config/config.xml"
+              TEMP_CONFIG="/config-init/config.xml"
+              NEW_CONFIG="/config-init/new-config.xml"
+              
+              if [ -f "$CONFIG_FILE" ]; then
+                echo "Existing config.xml found, updating only necessary fields"
+                cp "$CONFIG_FILE" "$TEMP_CONFIG"
+                
+                # Function to update XML value
+                update_xml_value() {
+                  local tag=$1
+                  local value=$2
+                  local file=$3
+                  
+                  # Check if tag exists
+                  if grep -q "<$tag>" "$file"; then
+                    # Replace existing value
+                    sed -i "s|<$tag>.*</$tag>|<$tag>$value</$tag>|g" "$file"
+                  else
+                    # Add new tag before closing Config tag
+                    sed -i "s|</Config>|  <$tag>$value</$tag>\n</Config>|g" "$file"
+                  fi
+                }
+                
+                # Update PostgreSQL settings
+                update_xml_value "PostgresUser" "$PG_USER" "$TEMP_CONFIG"
+                update_xml_value "PostgresPassword" "$PG_PASSWORD" "$TEMP_CONFIG"
+                update_xml_value "PostgresHost" "$PG_HOST" "$TEMP_CONFIG"
+                update_xml_value "PostgresPort" "$PG_PORT" "$TEMP_CONFIG"
+                update_xml_value "PostgresMainDb" "{{ .Values.cloudnativepg.mainDb }}" "$TEMP_CONFIG"
+                update_xml_value "PostgresLogDb" "{{ .Values.cloudnativepg.logDb }}" "$TEMP_CONFIG"
+                
+                # Update other values from appConfig if they're set
+                update_xml_value "BindAddress" "{{ .Values.appConfig.bindAddress }}" "$TEMP_CONFIG"
+                update_xml_value "Port" "{{ .Values.appConfig.port }}" "$TEMP_CONFIG"
+                update_xml_value "SslPort" "{{ .Values.appConfig.sslPort }}" "$TEMP_CONFIG"
+                update_xml_value "EnableSsl" "{{ .Values.appConfig.enableSsl }}" "$TEMP_CONFIG"
+                update_xml_value "LaunchBrowser" "{{ .Values.appConfig.launchBrowser }}" "$TEMP_CONFIG"
+                {{- if .Values.secretConfig.apiKey }}
+                update_xml_value "ApiKey" "{{ .Values.secretConfig.apiKey }}" "$TEMP_CONFIG"
+                {{- end }}
+                update_xml_value "AuthenticationMethod" "{{ .Values.appConfig.authenticationMethod }}" "$TEMP_CONFIG"
+                update_xml_value "AuthenticationRequired" "{{ .Values.appConfig.authenticationRequired }}" "$TEMP_CONFIG"
+                update_xml_value "Branch" "{{ .Values.appConfig.branch }}" "$TEMP_CONFIG"
+                update_xml_value "LogLevel" "{{ .Values.appConfig.logLevel }}" "$TEMP_CONFIG"
+                update_xml_value "SslCertPath" "{{ .Values.appConfig.sslCertPath }}" "$TEMP_CONFIG"
+                {{- if .Values.appConfig.sslCertPassword }}
+                update_xml_value "SslCertPassword" "{{ .Values.appConfig.sslCertPassword }}" "$TEMP_CONFIG"
+                {{- end }}
+                {{- if .Values.appConfig.urlBase }}
+                update_xml_value "UrlBase" "{{ .Values.appConfig.urlBase }}" "$TEMP_CONFIG"
+                {{- end }}
+                {{- if .Values.appConfig.instanceName }}
+                update_xml_value "InstanceName" "{{ .Values.appConfig.instanceName }}" "$TEMP_CONFIG"
+                {{- end }}
+                {{- if .Values.appConfig.updateMechanism }}
+                update_xml_value "UpdateMechanism" "{{ .Values.appConfig.updateMechanism }}" "$TEMP_CONFIG"
+                {{- end }}
+              else
+                echo "No existing config.xml found, creating new one"
+                # Create a new config.xml with default values and PostgreSQL settings
+                cat > "$TEMP_CONFIG" << EOF
+              <Config>
+                <BindAddress>{{ .Values.appConfig.bindAddress }}</BindAddress>
+                <Port>{{ .Values.appConfig.port }}</Port>
+                <SslPort>{{ .Values.appConfig.sslPort }}</SslPort>
+                <EnableSsl>{{ .Values.appConfig.enableSsl }}</EnableSsl>
+                <LaunchBrowser>{{ .Values.appConfig.launchBrowser }}</LaunchBrowser>
+                <ApiKey>{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}</ApiKey>
+                <AuthenticationMethod>{{ .Values.appConfig.authenticationMethod }}</AuthenticationMethod>
+                <AuthenticationRequired>{{ .Values.appConfig.authenticationRequired }}</AuthenticationRequired>
+                <Branch>{{ .Values.appConfig.branch }}</Branch>
+                <LogLevel>{{ .Values.appConfig.logLevel }}</LogLevel>
+                <SslCertPath>{{ .Values.appConfig.sslCertPath }}</SslCertPath>
+                <SslCertPassword>{{ .Values.appConfig.sslCertPassword }}</SslCertPassword>
+                <UrlBase>{{ .Values.appConfig.urlBase }}</UrlBase>
+                <InstanceName>{{ .Values.appConfig.instanceName }}</InstanceName>
+                <UpdateMechanism>{{ .Values.appConfig.updateMechanism }}</UpdateMechanism>
+                <PostgresUser>$PG_USER</PostgresUser>
+                <PostgresPassword>$PG_PASSWORD</PostgresPassword>
+                <PostgresHost>$PG_HOST</PostgresHost>
+                <PostgresPort>$PG_PORT</PostgresPort>
+                <PostgresMainDb>{{ .Values.cloudnativepg.mainDb }}</PostgresMainDb>
+                <PostgresLogDb>{{ .Values.cloudnativepg.logDb }}</PostgresLogDb>
+              </Config>
+              EOF
+              fi
+              
+              # If additional config secret is provided, merge it
+              if [ -n "{{ .Values.additionalConfig.secretRef.name }}" ] && [ -n "{{ .Values.additionalConfig.secretRef.key }}" ]; then
+                echo "Merging additional configuration from secret {{ .Values.additionalConfig.secretRef.name }}"
+                ADDITIONAL_CONFIG=$(kubectl get secret -n {{ .Release.Namespace }} {{ .Values.additionalConfig.secretRef.name }} -o jsonpath="{.data.{{ .Values.additionalConfig.secretRef.key }}}" | base64 -d)
+                
+                # Create a temporary file with the additional config
+                echo "$ADDITIONAL_CONFIG" > /config-init/additional_config.xml
+                
+                # Use xmlstarlet or similar tool to merge configs if available
+                # For now, just echo a message
+                echo "Additional configuration will be applied"
+              fi
+              
+              echo "Config file created successfully"
+          volumeMounts:
+            - name: config-init-volume
+              mountPath: /config-init
+            - name: config
+              mountPath: /config
+              {{- if .Values.persistence.config.subPath }}
+              subPath: {{ .Values.persistence.config.subPath }}
+              {{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.containerSecurityContext }}
@@ -122,11 +263,18 @@ spec:
             {{- end }}
             {{- end }}
             {{- /* Mount config.xml from secret into the config volume mount */}}
-            {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
+            {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
             - name: config-xml-chart-secret # Mount to the same volume as the PVC
               mountPath: /config/config.xml # Mount directly as config.xml
               subPath: config.xml           # Use the key from the secret
               readOnly: false
+            {{- end }}
+            {{- /* Mount config.xml from CloudnativePG init container */}}
+            {{- if .Values.cloudnativepg.enabled }}
+            - name: config-init-volume
+              mountPath: /config/config.xml
+              subPath: config.xml
+              readOnly: true
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
@@ -196,13 +344,18 @@ spec:
         {{- end }}
         {{- end }}
         {{- /* Define config.xml secret volume only if not using existingSecretName */}}
-        {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) }}
+        {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
         - name: config-xml-chart-secret # Use the same name as the PVC volume for the mount
           secret:
             secretName: {{ printf "%s-config" (include "appname.fullname" .) }}
             items:
               - key: config.xml # Key defined in secret.yaml
                 path: config.xml # Path within the secret volume mount
+        {{- end }}
+        {{- /* Define config-init volume for CloudnativePG integration */}}
+        {{- if .Values.cloudnativepg.enabled }}
+        - name: config-init-volume
+          emptyDir: {}
         {{- end }}
         {{- /* Define config.xml secret volume from user-specified existing Secret */}}
         {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}

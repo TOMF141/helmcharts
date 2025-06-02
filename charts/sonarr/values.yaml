@@ -21,6 +21,16 @@ imagePullSecrets: []
 extraLabels: {}
 
 # ------------------------------------------------------------------------------
+# NFS volume for media
+# ------------------------------------------------------------------------------
+nfs:
+  enabled: true
+  server: "10.3.200.151"
+  path: "/mnt/zpool/plexmedia"
+  # -- Mount path inside the container for the NFS volume.
+  mountPath: /mnt/nfs/media # Example mount path
+
+# ------------------------------------------------------------------------------
 # Number of replicas
 # ------------------------------------------------------------------------------
 replicaCount: 1
@@ -61,6 +71,24 @@ podSecurityContext: {}
 # -- Optional init containers for the pod.
 # See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 initContainers: []
+
+# -- Optional extra volume mounts for the main container.
+# Example:
+# extraVolumeMounts:
+#   - name: my-config-volume
+#     mountPath: /opt/scripts/my-script.sh
+#     subPath: my-script.sh
+#     readOnly: true
+extraVolumeMounts: []
+
+# -- Optional extra volumes for the pod.
+# Example:
+# extraVolumes:
+#   - name: my-config-volume
+#     configMap:
+#       name: my-sonarr-configmap
+#       defaultMode: 0755
+extraVolumes: []
 
 # -- Security context for the container.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
@@ -123,7 +151,7 @@ resources:
     memory: 4Gi
   requests:
     cpu: 50m
-    memory: 256Mi
+    memory: 1Gi
 
 # ------------------------------------------------------------------------------
 # Liveness probe
@@ -171,13 +199,7 @@ persistence:
     # -- Use an existing PVC instead of creating one.
     existingClaim: ""
   # Define NFS volume under persistence
-  plexmedia:
-    enabled: true
-    type: nfs
-    mountPath: /mnt/zpool/plexmedia # Define mount path here
-    server: "10.3.200.151"
-    path: "/mnt/zpool/plexmedia"
-    # readOnly: false
+
 
     # ------------------------------------------------------------------------------
     # Node scheduling
@@ -198,7 +220,7 @@ env:
   # TZ: Europe/London # Example: Set Timezone
   # PUID: 1000 # Example: Set User ID
   # PGID: 1000 # Example: Set Group ID
-  UMASK: "000"
+  UMASK: "002"
 
 # ------------------------------------------------------------------------------
 # Application Configuration
@@ -248,16 +270,21 @@ appConfig:
     # -- PostgreSQL log database name
     logDb: ""
 
-# -- Secret configuration (sensitive)
+# -- Application specific configuration (sensitive).
 secretConfig:
-  # -- API key for Sonarr
+  # -- API key for Sonarr. If not provided, a random one will be generated.
   apiKey: ""
-  # -- SSL certificate password
-  sslCertPassword: ""
-  # -- PostgreSQL password (used with appConfig.postgres)
-  postgresPassword: ""
-  # -- Use an existing secret for configuration
+  # -- Reference to a secret containing the API key
+  apiKeySecretRef:
+    name: ""
+    key: ""
+  # -- Set to the name of an existing secret containing the full config.xml content.
+  # If set, the chart will not render its own config.xml.
   existingSecretName: ""
+  # -- The key within the existing secret that holds the config.xml content.
+  existingSecretKey: "config.xml"
+  # -- PostgreSQL password (if postgres.enabled is true)
+  postgresPassword: ""
 
 # -- CloudnativePG integration
 cloudnativepg:
@@ -270,27 +297,27 @@ cloudnativepg:
   # -- CloudnativePG secret name (defaults to <clusterName>-app if not set)
   secretName: ""
   # -- Main database name
-  mainDbName: "sonarr-main"
+  mainDb: "sonarr-main"
   # -- Log database name
-  logDbName: "sonarr-log"
-  # -- Init container image
-  initContainerImage: "bitnami/kubectl:latest"
-  # -- Init container resources
-  resources:
+  logDb: "sonarr-log"
+  # -- Init container configuration
+  initContainer:
+    # -- Image to use for the init container
+    image: "bitnami/kubectl:latest"
+    # -- Resource limits for the init container
+    resources:
     limits:
       memory: 128Mi
     requests:
       cpu: 10m
       memory: 64Mi
 
-# -- Additional configuration from a separate secret
+# -- Additional configuration
 additionalConfig:
-  # -- Enable additional configuration
-  enabled: false
-  # -- Secret name containing additional configuration
-  secretName: ""
-  # -- Secret key containing additional configuration
-  secretKey: ""
+  # -- Secret reference for additional configuration
+  secretRef:
+    name: ""
+    key: ""
 
 # Optionally mount config.xml from an existing Kubernetes Secret
 # This allows you to manage config.xml in a Secret while the rest of /config uses a PVC.
@@ -317,11 +344,7 @@ envFrom: []
 # - configMapRef:
 #     name: my-configmap
 
-# -- Optional extra volumes for the pod.
-extraVolumes: []
 
-# -- Optional extra volume mounts for the main container.
-extraVolumeMounts: []
 
 # ------------------------------------------------------------------------------
 # Node scheduling

@@ -3,11 +3,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ printf "%s-%s" (include "appname.fullname" $) $key }}
+  name: {{ printf "%s-%s" (include "sonarr.fullname" $) $key }}
   namespace: {{ $.Release.Namespace }}
   labels:
     # Include standard labels defined in _helpers
-{{ include "appname.labels" $ | indent 4 }}
+{{ include "sonarr.labels" $ | indent 4 }}
     # Include extra labels defined globally in values.yaml
 {{- range $labelKey, $labelValue := $.Values.extraLabels }}
     {{ $labelKey }}: {{ $labelValue | quote }}

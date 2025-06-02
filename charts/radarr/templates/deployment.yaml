@@ -56,6 +56,9 @@ spec:
         - name: config-init
           image: {{ .Values.cloudnativepg.initContainer.image }}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           resources:
             {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
           command:
@@ -99,8 +102,9 @@ spec:
               {{- end }}
               
               # Define config file paths
-              CONFIG_FILE="/config/config.xml"
-              TEMP_CONFIG="/config-init/config.xml"
+              CONFIG_DIR="/config"
+              CONFIG_FILE="/shared/config.xml"
+              TEMP_CONFIG="/config-init/temp-config.xml"
               
               # Always create a new config.xml with default values and PostgreSQL settings
               echo "Creating new config.xml with current values"
@@ -144,9 +148,10 @@ spec:
               fi
               
               # Copy the updated config to the shared volume
-              echo "Copying config file to shared volume"
               cp "$TEMP_CONFIG" "$CONFIG_FILE"
-              echo "Config file created successfully"
+              chmod 644 "$CONFIG_FILE"
+              
+              echo "Config file created successfully in shared volume"
           volumeMounts:
             - name: config-init-volume
               mountPath: /config-init
@@ -155,6 +160,8 @@ spec:
               {{- if .Values.persistence.config.subPath }}
               subPath: {{ .Values.persistence.config.subPath }}
               {{- end }}
+            - name: shared-config
+              mountPath: /shared
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -235,10 +242,9 @@ spec:
             {{- end }}
             {{- /* Mount config.xml from CloudnativePG init container */}}
             {{- if .Values.cloudnativepg.enabled }}
-            - name: config-init-volume
+            - name: shared-config
               mountPath: /config/config.xml
               subPath: config.xml
-              readOnly: true
             {{- end }}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
@@ -269,6 +275,10 @@ spec:
             {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
       volumes:
+        - name: shared-config
+          emptyDir: {}
+        - name: config-init-volume
+          emptyDir: {}
         {{- /* Define PVC volumes */}}
         {{- range $key, $value := .Values.persistence }}
         {{- if $value.enabled }}

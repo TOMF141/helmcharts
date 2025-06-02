@@ -2,7 +2,7 @@ apiVersion: v2
 name: radarr
 description: A Helm chart to deploy Radarr
 type: application
-version: 1.0.7
+version: 1.0.8
 appVersion: "4.0.0"
 
 keywords:

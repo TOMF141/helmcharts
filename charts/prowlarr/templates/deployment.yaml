@@ -73,6 +73,24 @@ spec:
               PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
               PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
               
+              # Get API key from secret if configured
+              {{- if .Values.secretConfig.apiKeySecretRef }}
+              API_KEY_SECRET_NAME="{{ .Values.secretConfig.apiKeySecretRef.name }}"
+              API_KEY_SECRET_KEY="{{ .Values.secretConfig.apiKeySecretRef.key }}"
+              if [ -n "$API_KEY_SECRET_NAME" ] && [ -n "$API_KEY_SECRET_KEY" ]; then
+                echo "Fetching API key from secret $API_KEY_SECRET_NAME in namespace {{ .Release.Namespace }}"
+                API_KEY=$(kubectl get secret -n {{ .Release.Namespace }} $API_KEY_SECRET_NAME -o jsonpath="{.data.$API_KEY_SECRET_KEY}" | base64 -d)
+                if [ -z "$API_KEY" ]; then
+                  echo "Warning: API key not found in secret $API_KEY_SECRET_NAME with key $API_KEY_SECRET_KEY"
+                  API_KEY="{{ .Values.secretConfig.apiKey }}"
+                fi
+              else
+                API_KEY="{{ .Values.secretConfig.apiKey }}"
+              fi
+              {{- else }}
+              API_KEY="{{ .Values.secretConfig.apiKey }}"
+              {{- end }}
+              
               # Check if config.xml already exists
               CONFIG_FILE="/config/config.xml"
               TEMP_CONFIG="/config-init/config.xml"
@@ -122,9 +140,8 @@ spec:
                 {{- if .Values.secretConfig.launchBrowser }}
                 update_xml_value "LaunchBrowser" "{{ .Values.secretConfig.launchBrowser }}" "$TEMP_CONFIG"
                 {{- end }}
-                {{- if or .Values.secretConfig.apiKey .Values.secretConfig.apiKeySecretRef }}
-                update_xml_value "ApiKey" "{{ default .Values.secretConfig.apiKey (include "prowlarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) }}" "$TEMP_CONFIG"
-                {{- end }}
+                # Update API key with value fetched from secret
+                update_xml_value "ApiKey" "$API_KEY" "$TEMP_CONFIG"
                 {{- if .Values.secretConfig.authenticationMethod }}
                 update_xml_value "AuthenticationMethod" "{{ .Values.secretConfig.authenticationMethod }}" "$TEMP_CONFIG"
                 {{- end }}
@@ -162,7 +179,7 @@ spec:
                 <SslPort>{{ .Values.secretConfig.sslPort }}</SslPort>
                 <EnableSsl>{{ .Values.secretConfig.enableSsl }}</EnableSsl>
                 <LaunchBrowser>{{ .Values.secretConfig.launchBrowser }}</LaunchBrowser>
-                <ApiKey>{{ default .Values.secretConfig.apiKey (include "prowlarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) }}</ApiKey>
+                <ApiKey>$API_KEY</ApiKey>
                 <AuthenticationMethod>{{ .Values.secretConfig.authenticationMethod }}</AuthenticationMethod>
                 <AuthenticationRequired>{{ .Values.secretConfig.authenticationRequired }}</AuthenticationRequired>
                 <Branch>{{ .Values.secretConfig.branch }}</Branch>

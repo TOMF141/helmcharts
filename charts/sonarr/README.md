@@ -48,7 +48,7 @@ The following table lists the configurable parameters of the Sonarr chart and th
 | `configXml.sslPort`                   | Port for Sonarr HTTPS interface                                             | `9898`                                     |
 | `configXml.enableSsl`                 | Enable SSL/HTTPS                                                            | `"False"`                                  |
 | `configXml.launchBrowser`             | Launch browser on startup                                                   | `"True"`                                   |
-| `configXml.apiKey`                    | Sonarr API key (auto-generated if empty, **replace default**)               | `"xxxxxxxxxxx"`                            |
+| `secretConfig.apiKey`                | Sonarr API key (required, must be provided here or via secret)             | `""`                                       |
 | `configXml.authenticationMethod`      | Authentication method                                                       | `External`                                 |
 | `configXml.authenticationRequired`    | Authentication requirement level                                            | `DisabledForLocalAddresses`                |
 | `configXml.branch`                    | Sonarr update branch                                                        | `main`                                     |
@@ -106,7 +106,7 @@ There are three ways to manage Sonarr's `config.xml` file:
    * Used when `cloudnativepg.enabled=false`
    * If `secretConfig.existingSecretName` is set, that secret will be used
    * Otherwise, a new secret named `<release-name>-sonarr-config` will be created using values from `appConfig` and `secretConfig`
-   * **Important:** The default `secretConfig.apiKey` is empty and will be auto-generated if not provided. You should set a secure value when installing the chart
+   * **Important:** The `secretConfig.apiKey` is required and must be provided either directly in values or via `secretConfig.apiKeySecretRef`. The chart will fail to deploy if no API key is provided
 
 3. **Additional Configuration**
    * Enable with `additionalConfig.enabled=true`

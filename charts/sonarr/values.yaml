@@ -297,9 +297,9 @@ appConfig:
 
 # -- Application specific configuration (sensitive).
 secretConfig:
-  # -- API key for Sonarr. If not provided, a random one will be generated.
+  # -- API key for Sonarr. This is required and must be provided either here or via apiKeySecretRef.
   apiKey: ""
-  # -- Reference to a secret containing the API key
+  # -- Reference to a secret containing the API key. This is required if apiKey is not set.
   apiKeySecretRef:
     name: ""
     key: ""

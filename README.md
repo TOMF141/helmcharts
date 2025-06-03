@@ -1,140 +1,59 @@
-# Helm Charts Collection
+# TF141 Helm Charts
 
-This repository contains a collection of Helm charts for deploying various applications in Kubernetes. These charts are designed to be easy to use and customizable for different environments.
+A collection of Helm charts for media server applications and automation tools.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Available Charts](#available-charts)
-  - [Media Management](#media-management)
-  - [Monitoring](#monitoring)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Renovate Integration](#renovate-integration)
-
-## Overview
-
-This Helm chart repository provides a collection of charts for deploying various applications in Kubernetes environments. The charts follow best practices for Kubernetes deployments and include sensible defaults while allowing for customization through values files.
-
-## Installation
-
-To use these Helm charts, add this repository to your Helm configuration:
+## Usage
 
 ```bash
-helm repo add tf141 https://tomf141.github.io/helmcharts/
+helm repo add tf141 https://tf141.github.io/helmcharts
 helm repo update
 ```
 
 ## Available Charts
 
-### Media Management
+| Chart | Description |
+|-------|-------------|
+| autopulse | Automation tool for media management |
+| autoscan | Real-time file system monitoring for media servers |
+| huntarr | Media content management tool |
+| jellyseerr | Request management for Jellyfin |
+| lidarr | Music collection manager for Usenet and BitTorrent users |
+| overseerr | Request management for Plex |
+| prowlarr | Indexer manager/proxy for PVR apps |
+| qbittorrent | BitTorrent client |
+| radarr | Movie collection manager for Usenet and BitTorrent users |
+| sabnzbd | Binary newsreader with web-UI |
+| sonarr | TV show collection manager for Usenet and BitTorrent users |
+| tautulli | Monitoring and tracking tool for Plex |
 
-| Chart | Description | Version |
-|-------|-------------|---------|
-| [autopulse](./charts/autopulse/) | A Helm chart for Autopulse | 1.0.0 |
-| [autoscan](./charts/autoscan/) | A Helm chart to deploy autoscan | 1.0.1 |
-| [huntarr](./charts/huntarr/) | A Helm chart for Huntarr (4sonarr) | 0.1.8 |
-| [lidarr](./charts/lidarr/) | A Helm chart to deploy Lidarr | 0.0.4 |
-| [overseerr](./charts/overseerr/) | A Helm chart to deploy Overseerr - a request management and media discovery tool for the Plex ecosystem | 1.0.2 |
-| [prowlarr](./charts/prowlarr/) | A Helm chart to deploy Prowlarr | 1.0.0 |
-| [qbittorrent](./charts/qbittorrent/) | A Helm chart to deploy qBittorrent | 1.0.2 |
-| [radarr](./charts/radarr/) | A Helm chart to deploy Radarr | 1.0.2 |
-| [sabnzbd](./charts/sabnzbd/) | A Helm chart for Sabnzbd Usenet downloader | 1.0.2 |
-| [sonarr](./charts/sonarr/) | A Helm chart to deploy Sonarr | 1.0.3 |
-
-### Monitoring
-
-| Chart | Description | Version |
-|-------|-------------|---------|
-| [tautulli](./charts/tautulli/) | A Helm chart to deploy Tautulli - a monitoring and tracking tool for Plex Media Server | 1.0.1 |
-
-## Usage
+## Installation
 
 To install a chart from this repository:
 
 ```bash
-# Install with default values
 helm install my-release tf141/<chart-name>
-
-# Install with custom values
-helm install my-release tf141/<chart-name> -f my-values.yaml
 ```
 
-For example, to install Tautulli:
+For example:
 
 ```bash
-helm install tautulli tf141/tautulli
+helm install my-sonarr tf141/sonarr
 ```
 
 ## Configuration
 
-Each chart includes a `values.yaml` file with default configuration options. You can customize these values by creating your own values file and passing it to the `helm install` command.
+Each chart has its own set of configurable values. To see the default values for a chart:
 
-Common configuration options include:
-
-- **Image settings**: Repository, tag, and pull policy
-- **Replica count**: Number of pod replicas
-- **Environment variables**: Application-specific environment variables
-- **Service configuration**: Service type and port
-- **Resource requests and limits**: CPU and memory allocation
-- **Persistence**: Storage configuration for stateful applications
-- **Security context**: Pod and container security settings
-- **Node scheduling**: Node selectors, tolerations, and affinity rules
-
-Example custom values file for Tautulli:
-
-```yaml
-image:
-  tag: latest
-
-replicaCount: 1
-
-env:
-  PUID: "1000"
-  PGID: "1000"
-  TZ: "Europe/London"
-
-persistence:
-  config:
-    enabled: true
-    size: 2Gi
-    storageClass: "standard"
-
-resources:
-  limits:
-    memory: 1Gi
-  requests:
-    cpu: 100m
-    memory: 512Mi
+```bash
+helm show values tf141/<chart-name>
 ```
 
-## Renovate Integration
+You can override these values by creating your own values file:
 
-This repository is integrated with Renovate for automated dependency updates. Renovate monitors:
-
-- Helm chart versions
-- Container image versions
-- Chart dependencies
-
-The configuration is defined in `renovate.json` at the root of the repository.
-
-## Chart Structure
-
-Each chart follows the standard Helm chart structure:
-
-```
-charts/<chart-name>/
-├── Chart.yaml           # Chart metadata
-├── values.yaml          # Default configuration values
-├── templates/           # Kubernetes manifest templates
-│   ├── _helpers.tpl     # Template helpers
-│   ├── deployment.yaml  # Deployment configuration
-│   ├── service.yaml     # Service configuration
-│   └── ...              # Other resources
-└── README.md            # Chart documentation
+```bash
+helm install my-release tf141/<chart-name> -f my-values.yaml
 ```
 
-## Deployment with ArgoCD
+## Documentation
 
-These charts are designed to work seamlessly with ArgoCD for GitOps-based deployments. For more information on using these charts with ArgoCD, refer to the [ArgoCD documentation](https://github.com/TOMF141/argocd).
+For more detailed information about each chart, please refer to the README in each chart's directory.

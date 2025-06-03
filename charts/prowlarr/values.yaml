@@ -238,11 +238,12 @@ secretConfig:
   enableSsl: "False"
   # -- Corresponds to <LaunchBrowser> in config.xml
   launchBrowser: "True"
-  # -- Corresponds to <ApiKey> in config.xml. Provide directly or via secret ref.
+  # -- Corresponds to <ApiKey> in config.xml. This is required and must be provided either here or via apiKeySecretRef.
   apiKey: ""
-  # apiKeySecretRef:
-  #   name: "" # Name of existing secret
-  #   key: ""  # Key in existing secret
+  # -- Reference to a secret containing the API key. This is required if apiKey is not set.
+  apiKeySecretRef:
+    name: "" # Name of existing secret
+    key: ""  # Key in existing secret
   # -- Corresponds to <AuthenticationMethod> in config.xml
   authenticationMethod: "External"
   # -- Corresponds to <AuthenticationRequired> in config.xml

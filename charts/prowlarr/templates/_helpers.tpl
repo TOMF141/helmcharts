@@ -88,7 +88,15 @@ Reads values from .Values.secretConfig.
   <EnableSsl>{{ .Values.secretConfig.enableSsl }}</EnableSsl>
   <LaunchBrowser>{{ .Values.secretConfig.launchBrowser }}</LaunchBrowser>
   {{- /* Handle apiKey potentially coming from a secret */}}
-  <ApiKey>{{ default .Values.secretConfig.apiKey (include "prowlarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) }}</ApiKey>
+  {{- $apiKey := default .Values.secretConfig.apiKey (include "prowlarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) -}}
+  {{- if eq $apiKey "" -}}
+  {{- if and .Values.secretConfig.apiKeySecretRef .Values.secretConfig.apiKeySecretRef.name .Values.secretConfig.apiKeySecretRef.key -}}
+  {{- /* API key will be fetched from secret in deployment.yaml */}}
+  {{- else -}}
+  {{- fail "API key is required. Please provide it either in values.yaml (secretConfig.apiKey) or as a secret reference (secretConfig.apiKeySecretRef)" -}}
+  {{- end -}}
+  {{- end -}}
+  <ApiKey>{{ $apiKey }}</ApiKey>
   <AuthenticationMethod>{{ .Values.secretConfig.authenticationMethod }}</AuthenticationMethod>
   <AuthenticationRequired>{{ .Values.secretConfig.authenticationRequired }}</AuthenticationRequired>
   <Branch>{{ .Values.secretConfig.branch }}</Branch>

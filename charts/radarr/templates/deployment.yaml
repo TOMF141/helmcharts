@@ -83,7 +83,7 @@ spec:
               PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
               PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
               
-              # Get API key from secret if configured
+              # Get API key from secret or values
               {{- if .Values.secretConfig.apiKeySecretRef }}
               API_KEY_SECRET_NAME="{{ .Values.secretConfig.apiKeySecretRef.name }}"
               API_KEY_SECRET_KEY="{{ .Values.secretConfig.apiKeySecretRef.key }}"
@@ -91,14 +91,18 @@ spec:
                 echo "Fetching API key from secret $API_KEY_SECRET_NAME in namespace {{ .Release.Namespace }}"
                 API_KEY=$(kubectl get secret -n {{ .Release.Namespace }} $API_KEY_SECRET_NAME -o jsonpath="{.data.$API_KEY_SECRET_KEY}" | base64 -d)
                 if [ -z "$API_KEY" ]; then
-                  echo "Warning: API key not found in secret $API_KEY_SECRET_NAME with key $API_KEY_SECRET_KEY"
-                  API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+                  echo "Error: API key not found in secret $API_KEY_SECRET_NAME with key $API_KEY_SECRET_KEY"
+                  exit 1
                 fi
               else
-                API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+                echo "Error: API key secret reference is incomplete. Both name and key must be provided"
+                exit 1
               fi
+              {{- else if .Values.secretConfig.apiKey }}
+              API_KEY="{{ .Values.secretConfig.apiKey }}"
               {{- else }}
-              API_KEY="{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}"
+              echo "Error: API key is required. Please provide it either in values.yaml (secretConfig.apiKey) or as a secret reference (secretConfig.apiKeySecretRef)"
+              exit 1
               {{- end }}
               
               # Define config file paths

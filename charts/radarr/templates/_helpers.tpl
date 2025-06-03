@@ -84,7 +84,16 @@ This uses values from .Values.appConfig and .Values.secretConfig.
   <SslPort>{{ .Values.appConfig.sslPort | default 9898 }}</SslPort>
   <EnableSsl>{{ .Values.appConfig.enableSsl | default "False" }}</EnableSsl>
   <LaunchBrowser>{{ .Values.appConfig.launchBrowser | default "True" }}</LaunchBrowser>
-  <ApiKey>{{ .Values.secretConfig.apiKey | default (randAlphaNum 32) }}</ApiKey> {{/* Default to random if not provided */}}
+  {{- /* Handle apiKey coming from values or secret */}}
+  {{- $apiKey := .Values.secretConfig.apiKey -}}
+  {{- if not $apiKey -}}
+  {{- if and .Values.secretConfig.apiKeySecretRef .Values.secretConfig.apiKeySecretRef.name .Values.secretConfig.apiKeySecretRef.key -}}
+  {{- /* API key will be fetched from secret in deployment.yaml */}}
+  {{- else -}}
+  {{- fail "API key is required. Please provide it either in values.yaml (secretConfig.apiKey) or as a secret reference (secretConfig.apiKeySecretRef)" -}}
+  {{- end -}}
+  {{- end -}}
+  <ApiKey>{{ $apiKey }}</ApiKey>
   <AuthenticationMethod>{{ .Values.appConfig.authenticationMethod | default "External" }}</AuthenticationMethod>
   <AuthenticationRequired>{{ .Values.appConfig.authenticationRequired | default "DisabledForLocalAddresses" }}</AuthenticationRequired>
   <Branch>{{ .Values.appConfig.branch | default "main" }}</Branch>

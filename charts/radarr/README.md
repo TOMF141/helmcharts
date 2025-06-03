@@ -48,7 +48,7 @@ The following table lists the configurable parameters of the Radarr chart and th
 | `configXml.sslPort`                   | Port for Radarr HTTPS interface                                             | `9898`                                     |
 | `configXml.enableSsl`                 | Enable SSL/HTTPS                                                            | `"False"`                                  |
 | `configXml.launchBrowser`             | Launch browser on startup                                                   | `"True"`                                   |
-| `configXml.apiKey`                    | Radarr API key (auto-generated if empty)                                    | `""`                                       |
+| `secretConfig.apiKey`                | Radarr API key (required, must be provided here or via secret)             | `""`                                       |
 | `configXml.authenticationMethod`      | Authentication method                                                       | `External`                                 |
 | `configXml.authenticationRequired`    | Authentication requirement level                                            | `DisabledForLocalAddresses`                |
 | `configXml.branch`                    | Radarr update branch                                                        | `main`                                     |
@@ -92,7 +92,7 @@ The following table lists the configurable parameters of the Radarr chart and th
 | `appConfig.postgres.port`            | PostgreSQL port                                                             | `5432`                                     |
 | `appConfig.postgres.mainDb`          | PostgreSQL main database name                                               | `""`                                       |
 | `appConfig.postgres.logDb`           | PostgreSQL log database name                                                | `""`                                       |
-| `secretConfig.apiKey`                | Radarr API key (auto-generated if empty)                                    | `""`                                       |
+| `secretConfig.apiKey`                | Radarr API key (required, must be provided here or via secret)             | `""`                                       |
 | `secretConfig.postgresPassword`      | PostgreSQL password (if postgres.enabled is true)                           | `""`                                       |
 | `additionalConfig.secretRef.name`    | Secret reference for additional configuration                               | `""`                                       |
 | `additionalConfig.secretRef.key`     | Key in the secret for additional configuration                             | `""`                                       |
@@ -110,7 +110,7 @@ The Radarr `config.xml` file can be managed in several ways:
 2. **Static Secret (Legacy):**
    * If `configXmlFromSecret.enabled=true`, the `config.xml` file will be mounted from an existing Secret.
    * Otherwise, if `cloudnativepg.enabled=false`, a new secret named `{{ include "radarr.fullname" . }}-config` will be created using the values from `appConfig` and `secretConfig`.
-   * The API key (`secretConfig.apiKey`) will be automatically generated if left empty.
+   * The API key (`secretConfig.apiKey`) must be provided either directly in values or via `secretConfig.apiKeySecretRef`.
 
 3. **Additional Configuration:**
    * You can provide additional configuration via a separate Secret using `additionalConfig.secretRef`.

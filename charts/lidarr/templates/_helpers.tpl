@@ -83,8 +83,12 @@ Helper to render the config.xml file content for Lidarr.
   <SslPort>{{ .Values.secretConfig.sslPort | default 9898 }}</SslPort>
   <EnableSsl>{{ .Values.secretConfig.enableSsl | default "False" }}</EnableSsl>
   <LaunchBrowser>{{ .Values.secretConfig.launchBrowser | default "True" }}</LaunchBrowser>
-  {{- /* Handle apiKey potentially coming from a secret */}}
-  <ApiKey>{{ default .Values.secretConfig.apiKey (include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) | default (randAlphaNum 32) }}</ApiKey>
+  {{- /* Handle apiKey coming from values or secret */}}
+  {{- $apiKey := default .Values.secretConfig.apiKey (include "lidarr.secretValue" (dict "secretRef" .Values.secretConfig.apiKeySecretRef "context" $)) -}}
+  {{- if not $apiKey -}}
+  {{- fail "API key is required. Please provide it either in values.yaml (secretConfig.apiKey) or as a secret reference (secretConfig.apiKeySecretRef)" -}}
+  {{- end -}}
+  <ApiKey>{{ $apiKey }}</ApiKey>
   <AuthenticationMethod>{{ .Values.secretConfig.authenticationMethod | default "External" }}</AuthenticationMethod>
   <AuthenticationRequired>{{ .Values.secretConfig.authenticationRequired | default "DisabledForLocalAddresses" }}</AuthenticationRequired>
   <Branch>{{ .Values.secretConfig.branch | default "main" }}</Branch>

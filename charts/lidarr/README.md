@@ -48,7 +48,7 @@ The following table lists the configurable parameters of the Lidarr chart and th
 | `configXml.sslPort`                   | Port for Lidarr HTTPS interface                                             | `9898`                                     |
 | `configXml.enableSsl`                 | Enable SSL/HTTPS                                                            | `"False"`                                  |
 | `configXml.launchBrowser`             | Launch browser on startup                                                   | `"True"`                                   |
-| `configXml.apiKey`                    | Lidarr API key (auto-generated if empty, **replace default**)               | `"xxxxxxxxxxx"`                            |
+| `secretConfig.apiKey`                 | Lidarr API key (required, must be provided here or via secret)             | `""`                                     |
 | `configXml.authenticationMethod`      | Authentication method                                                       | `External`                                 |
 | `configXml.authenticationRequired`    | Authentication requirement level                                            | `DisabledForLocalAddresses`                |
 | `configXml.branch`                    | Lidarr update branch                                                        | `main`                                     |

@@ -78,7 +78,7 @@ This chart supports integration with [CloudnativePG](https://cloudnative-pg.io/)
 | `cloudnativepg.secretName`            | Secret name for CloudnativePG credentials (defaults to <clusterName>-app)   | `""`                                       |
 | `cloudnativepg.mainDb`                | Main database name                                                          | `"lidarr-main"`                            |
 | `cloudnativepg.logDb`                 | Log database name                                                           | `"lidarr-log"`                             |
-| `cloudnativepg.initContainer.image`   | Image to use for the init container                                         | `"bitnami/kubectl:latest"`                 |
+| `cloudnativepg.initContainer.image`   | Image to use for the init container                                         | `"harbor.tf141.me/utils/kubectl:v1.33"`                 |
 | `cloudnativepg.initContainer.resources` | Resource limits for the init container                                      | See `values.yaml`                           |
 | `additionalConfig.secretRef.name`     | Secret reference for additional configuration                               | `""`                                       |
 | `additionalConfig.secretRef.key`      | Key in the secret for additional configuration                              | `""`                                       |

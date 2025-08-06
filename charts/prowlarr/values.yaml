@@ -299,7 +299,7 @@ cloudnativepg:
   # -- Init container configuration
   initContainer:
     # -- Image for the init container
-    image: "harbor.tf141.me/utils/kubectl:v1.33"
+    image: "harbor.t2azcr.azurecr.io/utils/kubectl:v1.333"
     # -- Image pull policy for the init container
     imagePullPolicy: IfNotPresent
     # -- Resources for the init container

@@ -71,7 +71,7 @@ The following table lists the configurable parameters of the Radarr chart and th
 | `cloudnativepg.secretName`           | Secret name for CloudnativePG credentials (defaults to <clusterName>-app)   | `""`                                       |
 | `cloudnativepg.mainDb`               | Main database name                                                          | `radarr-main`                              |
 | `cloudnativepg.logDb`                | Log database name                                                           | `radarr-log`                               |
-| `cloudnativepg.initContainer.image`  | Image to use for the init container                                         | `harbor.tf141.me/utils/kubectl:v1.33`                   |
+| `cloudnativepg.initContainer.image`  | Image to use for the init container                                         | `harbor.t2azcr.azurecr.io/utils/kubectl:v1.333`                   |
 | `appConfig.bindAddress`              | Bind address for Radarr                                                     | `*`                                        |
 | `appConfig.port`                     | Port for Radarr HTTP interface                                              | `7878`                                     |
 | `appConfig.sslPort`                  | Port for Radarr HTTPS interface                                             | `9898`                                     |

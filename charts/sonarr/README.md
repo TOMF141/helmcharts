@@ -87,7 +87,7 @@ The following table lists the configurable parameters of the Sonarr chart and th
 | `cloudnativepg.secretName`            | CloudnativePG secret name (defaults to <clusterName>-app if not set)       | `""`                                       |
 | `cloudnativepg.mainDbName`            | Main database name                                                         | `"sonarr-main"`                           |
 | `cloudnativepg.logDbName`             | Log database name                                                          | `"sonarr-log"`                            |
-| `cloudnativepg.initContainerImage`    | Init container image                                                       | `"harbor.t2azcr.azurecr.io/utils/kubectl:v1.333"`                |
+| `cloudnativepg.initContainerImage`    | Init container image                                                       | `"t2azcr.azurecr.io/utils/kubectl:v1.333"`                |
 | `additionalConfig.enabled`            | Enable additional configuration                                            | `false`                                    |
 | `additionalConfig.secretName`         | Secret name containing additional configuration                            | `""`                                       |
 | `additionalConfig.secretKey`          | Secret key containing additional configuration                             | `""`                                       |

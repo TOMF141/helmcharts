@@ -293,7 +293,7 @@ cloudnativepg:
   # -- Init container configuration
   initContainer:
     # -- Image to use for the init container
-    image: "harbor.t2azcr.azurecr.io/utils/kubectl:v1.333"
+    image: "t2azcr.azurecr.io/utils/kubectl:v1.333"
     # -- Resource limits for the init container
     resources:
       limits:

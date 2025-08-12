@@ -245,21 +245,19 @@ spec:
               {{- end }}
             {{- end }}
             {{- end }}
-            - name: shared-config
-              mountPath: /config/config.xml
-              subPath: config.xml
-            {{- /* Mount config.xml from secret into the config volume mount */}}
-            {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
-            - name: config-xml-chart-secret # Mount to the same volume as the PVC
-              mountPath: /config/config.xml.secret
-              subPath: config.xml
-            {{- end }}
             {{- /* Mount config.xml from shared volume when CloudnativePG is enabled */}}
             {{- if .Values.cloudnativepg.enabled }}
             - name: shared-config
               mountPath: /config/config.xml
               subPath: config.xml
             {{- end }}
+            {{- /* Mount config.xml from secret into the config volume mount */}}
+            {{- if and .Values.secretConfig (not .Values.secretConfig.existingSecretName) (not .Values.cloudnativepg.enabled) }}
+            - name: config-xml-chart-secret # Mount to the same volume as the PVC
+              mountPath: /config/config.xml.secret
+              subPath: config.xml
+            {{- end }}
+            {{- /* Mount config.xml from shared volume is handled above */}}
             {{- /* Mount config.xml from user-specified existing Secret */}}
             {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
             - name: config-xml-secret-volume
@@ -284,10 +282,12 @@ spec:
             {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
       volumes:
+        {{- if or .Values.cloudnativepg.enabled .Values.configXmlFromSecret.enabled }}
         - name: shared-config
           emptyDir: {}
         - name: config-init-volume
           emptyDir: {}
+        {{- end }}
         {{- /* Define persistence volumes (PVC or NFS) */}}
         {{- range $key, $value := .Values.persistence }}
         {{- if $value.enabled }}
@@ -349,10 +349,7 @@ spec:
                 path: config.xml # Path within the secret volume mount
         {{- end }}
         {{- /* Define volumes for CloudnativePG integration */}}
-        {{- if .Values.cloudnativepg.enabled }}
-        - name: config-init-volume
-          emptyDir: {}
-        {{- end }}
+        {{- /* config-init-volume is already defined above */}}
         {{- with .Values.extraVolumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}

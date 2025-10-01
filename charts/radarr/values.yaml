@@ -193,7 +193,7 @@ persistence:
 # NFS volume for media
 # ------------------------------------------------------------------------------
 nfs:
-  enabled: true
+  enabled: false
   server: "10.3.200.151"
   path: "/mnt/zpool/plexmedia"
   # -- Mount path inside the container for the NFS volume.

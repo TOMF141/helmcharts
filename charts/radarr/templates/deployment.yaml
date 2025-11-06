@@ -330,11 +330,6 @@ spec:
               - key: config.xml # Key defined in secret.yaml
                 path: config.xml # Path within the secret volume mount
         {{- end }}
-        {{- /* Define config-init volume for CloudnativePG integration */}}
-        {{- if .Values.cloudnativepg.enabled }}
-        - name: config-init-volume
-          emptyDir: {}
-        {{- end }}
         {{- /* Define config.xml secret volume from user-specified existing Secret */}}
         {{- if and .Values.configXmlFromSecret.enabled .Values.configXmlFromSecret.secretName }}
         - name: config-xml-secret-volume

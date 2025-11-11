@@ -42,7 +42,7 @@ The following table lists the configurable parameters of the Tautulli chart and 
 | `persistence.config.existingClaim`    | Name of an existing PVC for configuration                                   | `""`                                       |
 | `persistence.config.storageClass`     | Storage class for the configuration PVC                                     | `""`                                       |
 | `nfs.enabled`                         | Enable NFS volume mount for backups                                         | `true`                                     |
-| `nfs.server`                          | NFS server address for backups                                              | `"10.3.200.151"`                           |
+| `nfs.server`                          | NFS server address for backups                                              | `"10.3.201.151"`                           |
 | `nfs.path`                            | Path on the NFS server for backups                                          | `"/mnt/kubebackup/kube-prod/tautulli"`     |
 | `iscsi.enabled`                       | Enable iSCSI volume (used if `storage.useIscsi` is true)                    | `false`                                    |
 | `iscsi.targetPortal`                  | iSCSI target portal address                                                 | `"10.0.2.15:3260"`                         |

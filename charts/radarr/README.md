@@ -39,7 +39,7 @@ The following table lists the configurable parameters of the Radarr chart and th
 | `persistence.config.existingClaim`    | Name of an existing PVC for configuration                                   | `""`                                       |
 | `persistence.config.storageClass`     | Storage class for the configuration PVC                                     | `""`                                       |
 | `nfs.enabled`                         | Enable NFS volume mount for media                                           | `true`                                     |
-| `nfs.server`                          | NFS server address                                                          | `"10.3.200.151"`                           |
+| `nfs.server`                          | NFS server address                                                          | `"10.3.201.151"`                           |
 | `nfs.path`                            | Path on the NFS server                                                      | `"/mnt/zpool/plexmedia"`                   |
 | `hostname`                            | Hostname for the pod                                                        | `radarr`                                   |
 | `configXml.existingSecret`            | Name of an existing secret containing `config.xml` (skips creation)         | `""`                                       |

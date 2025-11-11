@@ -175,7 +175,7 @@ persistence:
     existingClaim: "sabnzbd-config"
   download:
     # -- Enable persistence for download volume.
-    enabled: true
+    enabled: false
     # -- Type of volume.
     type: nfs
     # -- Mount path inside the container.
@@ -186,13 +186,13 @@ persistence:
     # readOnly: false
   plexmedia:
     # -- Enable persistence for plexmedia volume.
-    enabled: true
+    enabled: false
     # -- Type of volume.
     type: nfs
     # -- Mount path inside the container.
     mountPath: /zpool/plexmedia
     # -- NFS specific settings
-    server: "10.3.200.151"
+    server: "10.3.201.151"
     path: "/mnt/zpool/plexmedia"
     # readOnly: false
 

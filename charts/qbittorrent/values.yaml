@@ -186,7 +186,7 @@ persistence:
     existingClaim: "qbittorrent-config"
     storageClass: ""
   download:
-    enabled: true
+    enabled: false
     type: pvc
     mountPath: /downloads
     accessModes:
@@ -199,8 +199,8 @@ persistence:
 # NFS volume for media
 # ------------------------------------------------------------------------------
 nfs:
-  enabled: true
-  server: "10.3.200.151"
+  enabled: false
+  server: "10.3.201.151"
   path: "/mnt/zpool/plexmedia"
   # -- Mount path inside the container for the NFS volume.
   mountPath: /mnt/nfs/media # Example mount path

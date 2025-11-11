@@ -175,7 +175,7 @@ persistence:
   #   enabled: true
   #   type: nfs
   #   mountPath: /mnt/zpool/plexmedia # Define mount path here
-  #   server: "10.3.200.151"
+  #   server: "10.3.201.151"
   #   path: "/mnt/zpool/plexmedia"
   #   # readOnly: false
 

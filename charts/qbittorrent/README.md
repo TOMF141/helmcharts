@@ -46,7 +46,7 @@ The following table lists the configurable parameters of the qBittorrent chart a
 | `persistence.download.existingClaim`  | Name of an existing PVC for downloads                                       | `qbittorrent-download`                     |
 | `persistence.download.storageClass`   | Storage class for the download PVC                                          | `""`                                       |
 | `nfs.enabled`                         | Enable NFS volume mount for media                                           | `true`                                     |
-| `nfs.server`                          | NFS server address                                                          | `"10.3.200.151"`                           |
+| `nfs.server`                          | NFS server address                                                          | `"10.3.201.151"`                           |
 | `nfs.path`                            | Path on the NFS server                                                      | `"/mnt/zpool/plexmedia"`                   |
 | `hostname`                            | Hostname for the pod                                                        | `qbittorrent`                              |
 

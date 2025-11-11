@@ -2,7 +2,7 @@ apiVersion: v2
 name: sabnzbd
 description: A Helm chart for Sabnzbd Usenet downloader
 type: application
-version: 1.0.3
+version: 1.0.4
 appVersion: "latest" # Corresponds to the default image tag
 
 keywords:

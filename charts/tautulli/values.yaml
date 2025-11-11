@@ -182,7 +182,7 @@ persistence:
     # -- Mount path inside the container.
     mountPath: /backups # Example mount path for backups
     # -- NFS specific settings
-    server: "10.3.200.151"
+    server: "10.3.201.151"
     path: "/mnt/kubebackup/kube-prod/tautulli"
     # readOnly: false
 

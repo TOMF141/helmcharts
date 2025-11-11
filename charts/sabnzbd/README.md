@@ -47,7 +47,7 @@ The following table lists the configurable parameters of the Sabnzbd chart and t
 | `nfs.download.path`                   | Path on the NFS server for downloads                                        | `"/mnt/download/sabnzbd"`                  |
 | `nfs.download.mountPath`              | Mount path inside container for downloads                                   | `/download-temp`                           |
 | `nfs.plexmedia.enabled`               | Enable NFS mount for final media location                                   | `true`                                     |
-| `nfs.plexmedia.server`                | NFS server address for media                                                | `"10.3.200.151"`                           |
+| `nfs.plexmedia.server`                | NFS server address for media                                                | `"10.3.201.151"`                           |
 | `nfs.plexmedia.path`                  | Path on the NFS server for media                                            | `"/mnt/zpool/plexmedia"`                   |
 | `nfs.plexmedia.mountPath`             | Mount path inside container for media                                       | `/zpool/plexmedia`                         |
 | `hostname`                            | Hostname for the pod                                                        | `sabnzbd`                                  |

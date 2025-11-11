@@ -25,7 +25,7 @@ extraLabels: {}
 # ------------------------------------------------------------------------------
 nfs:
   enabled: false
-  server: "10.3.200.151"
+  server: "10.3.201.151"
   path: "/mnt/zpool/plexmedia"
   # -- Mount path inside the container for the NFS volume.
   mountPath: /mnt/nfs/media # Example mount path

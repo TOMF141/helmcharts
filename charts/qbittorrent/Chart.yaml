@@ -2,7 +2,7 @@ apiVersion: v2
 name: qbittorrent
 description: A Helm chart to deploy qBittorrent
 type: application
-version: 1.0.2
+version: 1.0.3
 appVersion: "latest"
 
 keywords:

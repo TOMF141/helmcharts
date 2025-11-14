@@ -1,0 +1,161 @@
+name: Publish Helm Charts to ACR (Parallel)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+  workflow_dispatch:
+    inputs:
+      chart_name:
+        description: 'Specific chart to publish (leave empty for all)'
+        required: false
+        type: string
+
+env:
+  HELM_VERSION: '3.13.0'
+
+jobs:
+  # Job 1: Detect which charts need to be published
+  detect-charts:
+    name: Detect Charts to Publish
+    runs-on: ubuntu-latest
+    outputs:
+      charts: ${{ steps.set-matrix.outputs.charts }}
+      charts_json: ${{ steps.set-matrix.outputs.charts_json }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Detect charts to publish
+        id: set-matrix
+        run: |
+          # Manual trigger with specific chart
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.chart_name }}" ]; then
+            echo "charts=${{ github.event.inputs.chart_name }}" >> $GITHUB_OUTPUT
+            echo 'charts_json=["${{ github.event.inputs.chart_name }}"]' >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Manual trigger - publish all charts
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            charts=$(ls -1 charts/ | jq -R -s -c 'split("\n")[:-1]')
+            echo "charts_json=$charts" >> $GITHUB_OUTPUT
+            echo "charts=$(echo $charts | jq -r 'join(" ")')" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Push trigger - detect changed charts
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^charts/' || true)
+          
+          if [ -z "$changed_files" ]; then
+            echo "No chart changes detected"
+            echo "charts=" >> $GITHUB_OUTPUT
+            echo 'charts_json=[]' >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Extract unique chart names and convert to JSON array
+          charts=$(echo "$changed_files" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          echo "charts_json=$charts" >> $GITHUB_OUTPUT
+          echo "charts=$(echo $charts | jq -r 'join(" ")')" >> $GITHUB_OUTPUT
+          echo "Changed charts: $(echo $charts | jq -r 'join(", ")')"
+  
+  # Job 2: Publish charts in parallel using matrix strategy
+  publish:
+    name: Publish ${{ matrix.chart }}
+    needs: detect-charts
+    if: needs.detect-charts.outputs.charts_json != '[]'
+    runs-on: ubuntu-latest
+    
+    strategy:
+      # Run up to 10 charts in parallel
+      max-parallel: 10
+      # Don't cancel other jobs if one fails
+      fail-fast: false
+      matrix:
+        chart: ${{ fromJson(needs.detect-charts.outputs.charts_json) }}
+    
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+      
+      - name: Login to Azure Container Registry
+        run: |
+          helm registry login ${{ secrets.ACR_NAME }}.azurecr.io \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
+      
+      - name: Get chart version
+        id: version
+        run: |
+          version=$(grep '^version:' charts/${{ matrix.chart }}/Chart.yaml | awk '{print $2}' | tr -d '"' | tr -d "'")
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Chart ${{ matrix.chart }} version: $version"
+      
+      - name: Package chart
+        run: |
+          cd charts/${{ matrix.chart }}
+          helm package .
+          ls -lh *.tgz
+      
+      - name: Push to ACR
+        run: |
+          cd charts/${{ matrix.chart }}
+          tgz_file="${{ matrix.chart }}-${{ steps.version.outputs.version }}.tgz"
+          
+          echo "Pushing $tgz_file to ACR..."
+          helm push "$tgz_file" oci://${{ secrets.ACR_NAME }}.azurecr.io/helm
+          
+          echo "✓ Successfully published ${{ matrix.chart }}:${{ steps.version.outputs.version }}"
+      
+      - name: Verify publication
+        run: |
+          echo "Chart ${{ matrix.chart }}:${{ steps.version.outputs.version }} published to:"
+          echo "  oci://${{ secrets.ACR_NAME }}.azurecr.io/helm/${{ matrix.chart }}"
+  
+  # Job 3: Summary of all publications
+  summary:
+    name: Publication Summary
+    needs: [detect-charts, publish]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Helm Chart Publishing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** ${{ secrets.ACR_NAME }}.azurecr.io/helm" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.detect-charts.outputs.charts }}" != "" ]; then
+            echo "**Charts processed:** ${{ needs.detect-charts.outputs.charts }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Charts processed:** None" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.publish.result }}" == "success" ]; then
+            echo "✅ **Status:** All charts published successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.publish.result }}" == "failure" ]; then
+            echo "❌ **Status:** Some charts failed to publish" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Status:** ${{ needs.publish.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View charts: https://portal.azure.com/#view/Microsoft_Azure_ContainerRegistries/RepositoryBlade/registryName/${{ secrets.ACR_NAME }}" >> $GITHUB_STEP_SUMMARY

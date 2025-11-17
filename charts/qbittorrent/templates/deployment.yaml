@@ -69,18 +69,30 @@ spec:
           {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            {{- /* Use exec probe for qbittorrent */}}
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: {{ .Values.livenessProbe.httpGet.port }}
+              {{- if .Values.livenessProbe.httpGet.scheme }}
+              scheme: {{ .Values.livenessProbe.httpGet.scheme }}
+              {{- end }}
+              {{- if .Values.livenessProbe.httpGet.httpHeaders }}
+              httpHeaders:
+                {{- toYaml .Values.livenessProbe.httpGet.httpHeaders | nindent 16 }}
+              {{- end }}
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port }}
+            {{- else if eq .Values.livenessProbe.type "exec" }}
             exec:
               command:
-              - /usr/bin/env
-              - bash
-              - -c
-              - {{ .Values.livenessProbe.command | quote }}
+                {{- toYaml .Values.livenessProbe.exec.command | nindent 16 }}
+            {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 1 }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
-            successThreshold: 1
+            successThreshold: {{ .Values.livenessProbe.successThreshold | default 1 }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:

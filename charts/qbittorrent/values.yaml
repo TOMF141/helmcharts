@@ -94,12 +94,39 @@ envFrom: []
 # ------------------------------------------------------------------------------
 livenessProbe:
   enabled: true
-  # type: exec # Defaulting to exec based on command below
+  # -- Probe type: httpGet, tcpSocket, or exec
+  type: httpGet
+  # -- Initial delay before the probe starts (in seconds)
   initialDelaySeconds: 30
+  # -- How often to perform the probe (in seconds)
   periodSeconds: 60
-  timeoutSeconds: 5 # Added default
-  failureThreshold: 3 # Added default
-  command: curl --fail localhost:8080 # Specific command for qBittorrent
+  # -- Timeout for the probe (in seconds)
+  timeoutSeconds: 5
+  # -- Number of consecutive failures before marking as unhealthy
+  failureThreshold: 3
+  # -- Number of consecutive successes before marking as healthy
+  successThreshold: 1
+  
+  # -- httpGet probe configuration (used when type is httpGet)
+  httpGet:
+    path: /api/v2/app/version
+    port: 8080
+    scheme: HTTP
+    # httpHeaders:
+    #   - name: Custom-Header
+    #     value: header-value
+  
+  # -- tcpSocket probe configuration (used when type is tcpSocket)
+  tcpSocket:
+    port: 8080
+  
+  # -- exec probe configuration (used when type is exec)
+  exec:
+    command:
+      - /usr/bin/env
+      - bash
+      - -c
+      - curl --fail localhost:8080
 
 # -- Readiness probe configuration. Disabled by default for qBittorrent.
 # See https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/

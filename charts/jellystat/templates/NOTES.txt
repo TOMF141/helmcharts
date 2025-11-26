@@ -1,0 +1,40 @@
+{{- $fullName := include "jellystat.fullname" . -}}
+{{- $servicePort := .Values.service.port -}}
+{{- $chartName := include "jellystat.name" . }}
+
+{{ $chartName | title }} has been deployed.
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ $fullName }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ $fullName }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ $fullName }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ $servicePort }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ $chartName }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:3000 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 3000:{{ $servicePort }}
+{{- end }}
+
+{{- range $key, $value := .Values.persistence }}
+{{- if and $value.enabled (eq $value.type "pvc") }}
+{{ $key | title }} data is persisted to the PVC named '{{ $value.existingClaim | default (printf "%s-%s" $fullName $key) }}'.
+{{- end }}
+{{- end }}
+
+{{- if .Values.cloudnativepg.enabled }}
+
+CloudnativePG Integration:
+  Database credentials are automatically fetched from the CloudnativePG cluster '{{ .Values.cloudnativepg.clusterName }}'.
+  Database: {{ .Values.cloudnativepg.database }}
+{{- end }}

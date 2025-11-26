@@ -1,0 +1,302 @@
+# Default values for jellystat.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the chart.
+fullnameOverride: ""
+
+# ------------------------------------------------------------------------------
+# Image configuration
+# ------------------------------------------------------------------------------
+image:
+  repository: cyfershepard/jellystat
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# -- Optional list of image pull secrets.
+imagePullSecrets: []
+# -- Optional extra labels to add to all resources.
+extraLabels: {}
+
+# ------------------------------------------------------------------------------
+# Number of replicas
+# ------------------------------------------------------------------------------
+replicaCount: 1
+
+# -- Deployment strategy.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: "25%"
+    maxUnavailable: "25%"
+
+# ------------------------------------------------------------------------------
+# Service Account
+# ------------------------------------------------------------------------------
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- The name of the service account to use. If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Annotations to add to the service account.
+  annotations: {}
+
+# -- Annotations to add to the pod.
+podAnnotations: {}
+# -- Labels to add to the pod.
+podLabels: {}
+# -- Annotations to add to the deployment.
+deploymentAnnotations: {}
+
+# -- Security context for the pod.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext: {}
+  # fsGroup: 1000
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# -- Optional init containers for the pod.
+# See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+initContainers: []
+
+# -- Optional extra volume mounts for the main container.
+extraVolumeMounts: []
+
+# -- Optional extra volumes for the pod.
+extraVolumes: []
+
+# -- Security context for the container.
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+containerSecurityContext: {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # readOnlyRootFilesystem: true
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # runAsNonRoot: true
+
+# ------------------------------------------------------------------------------
+# Service config
+# ------------------------------------------------------------------------------
+service:
+  # -- Kubernetes service type.
+  type: ClusterIP
+  # -- Service port.
+  port: 3000
+  # -- Service target port. Defaults to the service port.
+  targetPort: 3000
+  # -- Node port (only used if type is NodePort).
+  nodePort: null
+  # -- Annotations for the service.
+  annotations: {}
+  # -- Labels for the service.
+  labels: {}
+
+# ------------------------------------------------------------------------------
+# Ingress config
+# ------------------------------------------------------------------------------
+ingress:
+  # -- Enable ingress controller resource.
+  enabled: false
+  # -- Ingress class name.
+  className: ""
+  # -- Annotations for the ingress.
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  # -- Ingress host configuration.
+  hosts:
+  - host: jellystat.local
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  # -- Ingress TLS configuration.
+  tls: []
+  #  - secretName: jellystat-tls
+  #    hosts:
+  #      - jellystat.local
+
+# ------------------------------------------------------------------------------
+# Resource requests & limits
+# ------------------------------------------------------------------------------
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 50m
+    memory: 512Mi
+
+# ------------------------------------------------------------------------------
+# Liveness probe
+# ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Readiness probe configuration.
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ------------------------------------------------------------------------------
+# Persistence
+# ------------------------------------------------------------------------------
+persistence:
+  backup:
+    # -- Enable persistence for backup volume.
+    enabled: true
+    # -- Type of volume. Options: pvc, hostPath, emptyDir, nfs, iscsi.
+    type: pvc
+    # -- Mount path inside the container.
+    mountPath: /app/backend/backup-data
+    # -- Access modes for the PVC.
+    accessModes:
+    - ReadWriteOnce
+    # -- Size of the PVC.
+    size: 1Gi
+    # -- Storage class for the PVC. If "", uses default.
+    storageClass: ""
+    # -- Use an existing PVC instead of creating one.
+    existingClaim: ""
+    # -- Subpath within the volume to mount.
+    subPath: ""
+    # -- For hostPath, the type of the path.
+    hostPathType: "DirectoryOrCreate"
+    # -- For hostPath, the path on the host.
+    path: ""
+    # -- For emptyDir, the medium to use.
+    medium: ""
+    # -- For emptyDir, the size limit.
+    sizeLimit: ""
+    # -- For NFS, the server address.
+    server: ""
+    # -- For NFS, the path on the server.
+    nfsPath: ""
+    # -- For NFS, whether to mount as read-only.
+    readOnly: false
+    # -- For iSCSI, the target portal.
+    targetPortal: ""
+    # -- For iSCSI, the iSCSI Qualified Name.
+    iqn: ""
+    # -- For iSCSI, the Logical Unit Number.
+    lun: 0
+    # -- For iSCSI, the filesystem type.
+    fsType: "ext4"
+    # -- For iSCSI, the name of the secret containing credentials.
+    secretRef: ""
+
+# ------------------------------------------------------------------------------
+# Node scheduling
+# ------------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ------------------------------------------------------------------------------
+# Hostname override
+# ------------------------------------------------------------------------------
+hostname: jellystat
+
+# ------------------------------------------------------------------------------
+# Environment variables
+# ------------------------------------------------------------------------------
+env:
+  # TZ: Europe/London # Example: Set Timezone
+  TZ: "Etc/UTC"
+
+# ------------------------------------------------------------------------------
+# Application Configuration
+# ------------------------------------------------------------------------------
+
+# -- Application configuration (non-sensitive)
+appConfig:
+  # -- Base URL for the application
+  baseUrl: "/"
+  # -- Listen IP address (0.0.0.0 for IPv4, :: for IPv6)
+  listenIp: "0.0.0.0"
+  # -- Reject self-signed SSL certificates
+  rejectSelfSignedCertificates: "false"
+  # -- Minimum seconds to include playback
+  minimumSecondsToIncludePlayback: "1"
+  # -- Set to true if using Emby instead of Jellyfin
+  isEmbyApi: "false"
+
+  # -- Legacy PostgreSQL configuration (used when cloudnativepg.enabled=false)
+  postgres:
+    # -- Enable PostgreSQL support
+    enabled: false
+    # -- PostgreSQL username
+    user: ""
+    # -- PostgreSQL host
+    host: ""
+    # -- PostgreSQL port
+    port: 5432
+    # -- PostgreSQL database name
+    database: "jfstat"
+
+# -- Application specific configuration (sensitive).
+secretConfig:
+  # -- JWT secret for authentication. This is required and must be provided either here or via jwtSecretRef.
+  jwtSecret: ""
+  # -- Reference to a secret containing the JWT secret. This is required if jwtSecret is not set.
+  jwtSecretRef:
+    name: ""
+    key: ""
+  # -- PostgreSQL password (if postgres.enabled is true)
+  postgresPassword: ""
+  # -- Master override user (both JS_USER and JS_PASSWORD required to work)
+  masterUser: ""
+  # -- Master override password (both JS_USER and JS_PASSWORD required to work)
+  masterPassword: ""
+  # -- MaxMind GeoLite account ID for IP geolocation
+  geoliteAccountId: ""
+  # -- MaxMind GeoLite license key for IP geolocation
+  geoliteLicenseKey: ""
+
+# -- CloudnativePG integration
+cloudnativepg:
+  # -- Enable CloudnativePG integration
+  enabled: false
+  # -- CloudnativePG cluster name
+  clusterName: ""
+  # -- CloudnativePG namespace
+  namespace: ""
+  # -- CloudnativePG secret name (defaults to <clusterName>-app if not set)
+  secretName: ""
+  # -- Database name
+  database: ""
+  # -- Init container configuration
+  initContainer:
+    # -- Image to use for the init container
+    image: "t2azcr.azurecr.io/utils/kubectl:v1.33"
+    # -- Resource limits for the init container
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+# -- Environment variables sourced from ConfigMaps or Secrets.
+envFrom: []
+# - secretRef:
+#     name: my-secret
+# - configMapRef:
+#     name: my-configmap

@@ -1,0 +1,329 @@
+apiVersion: {{ include "jellystat.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "jellystat.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "jellystat.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    {{- if eq .Values.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      {{- toYaml .Values.strategy.rollingUpdate | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "jellystat.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "jellystat.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostname }}
+      hostname: {{ .Values.hostname | quote }}
+      {{- end }}
+      {{- if or .Values.initContainers .Values.cloudnativepg.enabled }}
+      initContainers:
+        {{- if .Values.cloudnativepg.enabled }}
+        - name: postgres-init
+          image: {{ .Values.cloudnativepg.initContainer.image }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              set -e
+              
+              # Determine the CloudnativePG secret name
+              CNPG_SECRET_NAME="{{ .Values.cloudnativepg.secretName }}"
+              if [ -z "$CNPG_SECRET_NAME" ]; then
+                CNPG_SECRET_NAME="{{ .Values.cloudnativepg.clusterName }}-app"
+              fi
+              
+              # Get CloudnativePG credentials from secret
+              CNPG_NAMESPACE="{{ .Values.cloudnativepg.namespace | default .Release.Namespace }}"
+              echo "Fetching CloudnativePG credentials from secret $CNPG_SECRET_NAME in namespace $CNPG_NAMESPACE"
+              
+              # Extract database connection details
+              PG_HOST=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.host}' | base64 -d)
+              PG_PORT=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.port}' | base64 -d)
+              PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
+              PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
+              PG_DATABASE="{{ .Values.cloudnativepg.database }}"
+              
+              # Write credentials to shared volume for main container to use
+              echo "$PG_HOST" > /shared/pg_host
+              echo "$PG_PORT" > /shared/pg_port
+              echo "$PG_USER" > /shared/pg_user
+              echo "$PG_PASSWORD" > /shared/pg_password
+              echo "$PG_DATABASE" > /shared/pg_database
+              
+              echo "PostgreSQL credentials written to shared volume"
+          volumeMounts:
+            - name: shared-config
+              mountPath: /shared
+        {{- end }}
+        {{- if .Values.initContainers }}
+        {{- toYaml .Values.initContainers | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.cloudnativepg.enabled }}
+            # CloudnativePG PostgreSQL configuration
+            - name: POSTGRES_IP
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  key: host
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  key: port
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  key: user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  key: password
+            - name: POSTGRES_DB
+              value: {{ .Values.cloudnativepg.database | quote }}
+            {{- else if .Values.appConfig.postgres.enabled }}
+            # Legacy PostgreSQL configuration
+            - name: POSTGRES_IP
+              value: {{ .Values.appConfig.postgres.host | quote }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.appConfig.postgres.port | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.appConfig.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: {{ .Values.appConfig.postgres.database | quote }}
+            {{- end }}
+            # JWT Secret
+            {{- if .Values.secretConfig.jwtSecretRef.name }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretConfig.jwtSecretRef.name }}
+                  key: {{ .Values.secretConfig.jwtSecretRef.key }}
+            {{- else if .Values.secretConfig.jwtSecret }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: jwt-secret
+            {{- end }}
+            # Application configuration
+            - name: JS_BASE_URL
+              value: {{ .Values.appConfig.baseUrl | quote }}
+            - name: JS_LISTEN_IP
+              value: {{ .Values.appConfig.listenIp | quote }}
+            - name: REJECT_SELF_SIGNED_CERTIFICATES
+              value: {{ .Values.appConfig.rejectSelfSignedCertificates | quote }}
+            - name: MINIMUM_SECONDS_TO_INCLUDE_PLAYBACK
+              value: {{ .Values.appConfig.minimumSecondsToIncludePlayback | quote }}
+            - name: IS_EMBY_API
+              value: {{ .Values.appConfig.isEmbyApi | quote }}
+            {{- if .Values.secretConfig.masterUser }}
+            - name: JS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: master-user
+            {{- end }}
+            {{- if .Values.secretConfig.masterPassword }}
+            - name: JS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: master-password
+            {{- end }}
+            {{- if .Values.secretConfig.geoliteAccountId }}
+            - name: JS_GEOLITE_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: geolite-account-id
+            {{- end }}
+            {{- if .Values.secretConfig.geoliteLicenseKey }}
+            - name: JS_GEOLITE_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jellystat.fullname" . }}-secret
+                  key: geolite-license-key
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- if .Values.livenessProbe.httpGet }}
+            httpGet:
+              path: {{ .Values.livenessProbe.httpGet.path }}
+              port: {{ .Values.livenessProbe.httpGet.port | default "http" }}
+            {{- else if .Values.livenessProbe.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port | default "http" }}
+            {{- else if .Values.livenessProbe.exec }}
+            exec:
+              command:
+                {{- toYaml .Values.livenessProbe.exec.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if .Values.readinessProbe.httpGet }}
+            httpGet:
+              path: {{ .Values.readinessProbe.httpGet.path }}
+              port: {{ .Values.readinessProbe.httpGet.port | default "http" }}
+            {{- else if .Values.readinessProbe.tcpSocket }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.tcpSocket.port | default "http" }}
+            {{- else if .Values.readinessProbe.exec }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.exec.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            {{- if .Values.readinessProbe.successThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- range $key, $value := .Values.persistence }}
+            {{- if $value.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+      volumes:
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "jellystat.fullname" $) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.nfsPath }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.cloudnativepg.enabled }}
+        - name: shared-config
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

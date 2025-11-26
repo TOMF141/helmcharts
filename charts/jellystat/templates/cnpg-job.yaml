@@ -1,0 +1,58 @@
+{{- if .Values.cloudnativepg.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "jellystat.fullname" . }}-cnpg-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    metadata:
+      labels:
+        {{- include "jellystat.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "jellystat.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+      - name: cnpg-init
+        image: {{ .Values.cloudnativepg.initContainer.image }}
+        imagePullPolicy: IfNotPresent
+        command:
+          - "/bin/sh"
+          - "-c"
+          - |
+            set -e
+            
+            # Determine the CloudnativePG secret name
+            CNPG_SECRET_NAME="{{ .Values.cloudnativepg.secretName }}"
+            if [ -z "$CNPG_SECRET_NAME" ]; then
+              CNPG_SECRET_NAME="{{ .Values.cloudnativepg.clusterName }}-app"
+            fi
+            
+            # Get CloudnativePG credentials from secret
+            CNPG_NAMESPACE="{{ .Values.cloudnativepg.namespace | default .Release.Namespace }}"
+            echo "Fetching CloudnativePG credentials from secret $CNPG_SECRET_NAME in namespace $CNPG_NAMESPACE"
+            
+            # Extract database connection details
+            PG_HOST=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.host}' | base64 -d)
+            PG_PORT=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.port}' | base64 -d)
+            PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
+            PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
+            
+            # Update the pgcreds secret with the fetched values
+            kubectl patch secret -n {{ .Release.Namespace }} {{ include "jellystat.fullname" . }}-pgcreds \
+              -p "{\"stringData\":{\"host\":\"$PG_HOST\",\"port\":\"$PG_PORT\",\"user\":\"$PG_USER\",\"password\":\"$PG_PASSWORD\"}}"
+            
+            echo "PostgreSQL credentials updated in secret {{ include "jellystat.fullname" . }}-pgcreds"
+        resources:
+          {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 10 }}
+{{- end }}

@@ -1,0 +1,73 @@
+{{- if .Values.cloudnativepg.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "jellystat.fullname" . }}-secret-reader
+  namespace: {{ .Values.cloudnativepg.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames:
+    - {{ .Values.cloudnativepg.secretName | default (printf "%s-app" .Values.cloudnativepg.clusterName) }}
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "jellystat.fullname" . }}-secret-reader
+  namespace: {{ .Values.cloudnativepg.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "jellystat.fullname" . }}-secret-reader
+subjects:
+- kind: ServiceAccount
+  name: {{ include "jellystat.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "jellystat.fullname" . }}-secret-patcher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames:
+    - {{ include "jellystat.fullname" . }}-pgcreds
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "jellystat.fullname" . }}-secret-patcher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "jellystat.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "jellystat.fullname" . }}-secret-patcher
+subjects:
+- kind: ServiceAccount
+  name: {{ include "jellystat.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}

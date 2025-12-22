@@ -1,0 +1,35 @@
+{{- if .Values.cloudnativepg.enabled }}
+{{- $cnpgSecretName := .Values.cloudnativepg.secretName | default (printf "%s-app" .Values.cloudnativepg.clusterName) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "prowlarr.fullname" . }}-secret-reader
+  namespace: {{ .Values.cloudnativepg.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "prowlarr.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames:
+    - {{ $cnpgSecretName }}
+    {{- if .Values.secretConfig.apiKeySecretRef.name }}
+    - {{ .Values.secretConfig.apiKeySecretRef.name }}
+    {{- end }}
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "prowlarr.fullname" . }}-secret-reader
+  namespace: {{ .Values.cloudnativepg.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "prowlarr.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "prowlarr.fullname" . }}-secret-reader
+subjects:
+- kind: ServiceAccount
+  name: {{ include "prowlarr.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+{{- end }}

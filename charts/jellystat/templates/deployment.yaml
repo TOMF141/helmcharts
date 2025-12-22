@@ -47,55 +47,9 @@ spec:
       {{- if .Values.hostname }}
       hostname: {{ .Values.hostname | quote }}
       {{- end }}
-      {{- if or .Values.initContainers .Values.cloudnativepg.enabled }}
+      {{- if .Values.initContainers }}
       initContainers:
-        {{- if .Values.cloudnativepg.enabled }}
-        - name: postgres-init
-          image: {{ .Values.cloudnativepg.initContainer.image }}
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          resources:
-            {{- toYaml .Values.cloudnativepg.initContainer.resources | nindent 12 }}
-          command:
-            - "/bin/sh"
-            - "-c"
-            - |
-              set -e
-              
-              # Determine the CloudnativePG secret name
-              CNPG_SECRET_NAME="{{ .Values.cloudnativepg.secretName }}"
-              if [ -z "$CNPG_SECRET_NAME" ]; then
-                CNPG_SECRET_NAME="{{ .Values.cloudnativepg.clusterName }}-app"
-              fi
-              
-              # Get CloudnativePG credentials from secret
-              CNPG_NAMESPACE="{{ .Values.cloudnativepg.namespace | default .Release.Namespace }}"
-              echo "Fetching CloudnativePG credentials from secret $CNPG_SECRET_NAME in namespace $CNPG_NAMESPACE"
-              
-              # Extract database connection details
-              PG_HOST=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.host}' | base64 -d)
-              PG_PORT=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.port}' | base64 -d)
-              PG_USER=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.user}' | base64 -d)
-              PG_PASSWORD=$(kubectl get secret -n $CNPG_NAMESPACE $CNPG_SECRET_NAME -o jsonpath='{.data.password}' | base64 -d)
-              PG_DATABASE="{{ .Values.cloudnativepg.database }}"
-              
-              # Write credentials to shared volume for main container to use
-              echo "$PG_HOST" > /shared/pg_host
-              echo "$PG_PORT" > /shared/pg_port
-              echo "$PG_USER" > /shared/pg_user
-              echo "$PG_PASSWORD" > /shared/pg_password
-              echo "$PG_DATABASE" > /shared/pg_database
-              
-              echo "PostgreSQL credentials written to shared volume"
-          volumeMounts:
-            - name: shared-config
-              mountPath: /shared
-        {{- end }}
-        {{- if .Values.initContainers }}
         {{- toYaml .Values.initContainers | nindent 8 }}
-        {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -115,26 +69,27 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             {{- if .Values.cloudnativepg.enabled }}
+            {{- $cnpgSecretName := .Values.cloudnativepg.secretName | default (printf "%s-app" .Values.cloudnativepg.clusterName) }}
             # CloudnativePG PostgreSQL configuration
             - name: POSTGRES_IP
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  name: {{ $cnpgSecretName }}
                   key: host
             - name: POSTGRES_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  name: {{ $cnpgSecretName }}
                   key: port
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  name: {{ $cnpgSecretName }}
                   key: user
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "jellystat.fullname" . }}-pgcreds
+                  name: {{ $cnpgSecretName }}
                   key: password
             - name: POSTGRES_DB
               value: {{ .Values.cloudnativepg.database | quote }}
@@ -307,10 +262,6 @@ spec:
             {{- end }}
           {{- end }}
         {{- end }}
-        {{- end }}
-        {{- if .Values.cloudnativepg.enabled }}
-        - name: shared-config
-          emptyDir: {}
         {{- end }}
         {{- with .Values.extraVolumes }}
           {{- tpl (toYaml .) $ | nindent 8 }}

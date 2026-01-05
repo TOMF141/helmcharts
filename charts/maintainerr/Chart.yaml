@@ -1,0 +1,18 @@
+apiVersion: v2
+name: maintainerr
+description: A Helm chart to deploy Maintainerr
+type: application
+version: 0.0.1
+appVersion: "2"
+
+keywords:
+- maintainerr
+- media
+- plex
+- jellyfin
+- automation
+- cleanup
+
+home: https://github.com/maintainerr/maintainerr
+sources:
+- https://github.com/maintainerr/maintainerr

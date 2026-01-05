@@ -1,0 +1,187 @@
+apiVersion: {{ include "appname.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "appname.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "appname.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.extraLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "appname.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: {{ .Values.strategy.type }}
+    {{- if eq .Values.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      {{- toYaml .Values.strategy.rollingUpdate | nindent 6 }}
+    {{- end }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "appname.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "appname.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hostname }}
+      hostname: {{ .Values.hostname | quote }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- if eq .Values.livenessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.livenessProbe.port | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.port | default "http" }}
+            {{- else if eq .Values.livenessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.livenessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 10 }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
+            successThreshold: 1
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- if eq .Values.readinessProbe.type "httpGet" }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.readinessProbe.port | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "tcpSocket" }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.port | default "http" }}
+            {{- else if eq .Values.readinessProbe.type "exec" }}
+            exec:
+              command:
+                {{- toYaml .Values.readinessProbe.command | nindent 16 }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            {{- if .Values.readinessProbe.successThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- range $key, $value := .Values.persistence }}
+            {{- if $value.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $value.mountPath }}
+              {{- if $value.subPath }}
+              subPath: {{ $value.subPath }}
+              {{- end }}
+              {{- if $value.readOnly }}
+              readOnly: {{ $value.readOnly }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+      volumes:
+        {{- range $key, $value := .Values.persistence }}
+        {{- if $value.enabled }}
+        - name: {{ $key }}
+          {{- if eq $value.type "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ $value.existingClaim | default (printf "%s-%s" (include "appname.fullname" $) $key) }}
+          {{- else if eq $value.type "hostPath" }}
+          hostPath:
+            path: {{ $value.path }}
+            type: {{ $value.hostPathType | default "DirectoryOrCreate" }}
+          {{- else if eq $value.type "emptyDir" }}
+          emptyDir:
+          {{- if $value.medium }}
+            medium: {{ $value.medium }}
+          {{- end }}
+          {{- if $value.sizeLimit }}
+            sizeLimit: {{ $value.sizeLimit }}
+          {{- end }}
+          {{- else if eq $value.type "nfs" }}
+          nfs:
+            server: {{ $value.server }}
+            path: {{ $value.path }}
+            readOnly: {{ $value.readOnly | default false }}
+          {{- else if eq $value.type "iscsi" }}
+          iscsi:
+            targetPortal: {{ $value.targetPortal }}
+            iqn: {{ $value.iqn }}
+            lun: {{ $value.lun }}
+            fsType: {{ $value.fsType | default "ext4" }}
+            readOnly: {{ $value.readOnly | default false }}
+            {{- if $value.secretRef }}
+            secretRef:
+              name: {{ $value.secretRef }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

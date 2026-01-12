@@ -119,8 +119,8 @@ ingress:
   # Resource requests & limits
   # ------------------------------------------------------------------------------
 resources:
-  limits:
-    memory: 4Gi
+  # limits:
+  #   memory: 4Gi
   requests:
     cpu: 50m
     memory: 256Mi
@@ -296,8 +296,8 @@ cloudnativepg:
     image: "t2azcr.azurecr.io/utils/kubectl:v1.33"
     # -- Resource limits for the init container
     resources:
-      limits:
-        memory: 128Mi
+      # limits:
+      #   memory: 128Mi
       requests:
         cpu: 10m
         memory: 64Mi

@@ -120,9 +120,9 @@ ingress:
   # Resource requests & limits
   # ------------------------------------------------------------------------------
 resources:
-  limits:
-    cpu: "2"
-    memory: 5Gi
+  # limits:
+  #   cpu: "2"
+  #   memory: 5Gi
   requests:
     cpu: "1"
     memory: 2Gi

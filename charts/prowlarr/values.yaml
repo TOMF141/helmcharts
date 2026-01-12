@@ -106,8 +106,8 @@ ingress:
   # -- Resource requests and limits.
   # See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 resources:
-  limits:
-    memory: 512Mi
+  # limits:
+  #   memory: 512Mi
   requests:
     cpu: 50m
     memory: 128Mi
@@ -304,8 +304,8 @@ cloudnativepg:
     imagePullPolicy: IfNotPresent
     # -- Resources for the init container
     resources:
-      limits:
-        memory: 128Mi
+      # limits:
+      #   memory: 128Mi
       requests:
         cpu: 10m
         memory: 64Mi

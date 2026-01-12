@@ -103,9 +103,9 @@ ingress:
   # -- Resource requests and limits.
   # See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 resources:
-  limits:
-    cpu: 50m
-    memory: 128Mi
+  # limits:
+  #   cpu: 50m
+  #   memory: 128Mi
   requests:
     cpu: 10m
     memory: 64Mi

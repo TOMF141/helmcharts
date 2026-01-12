@@ -3,7 +3,7 @@ entries:
   appname:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.514432162Z"
+    created: "2026-01-12T09:04:56.052259047Z"
     description: A Helm chart for deploying [AppName]
     digest: 2f483b7173367ec2e001d88fd9f594109c109cc0084dfd51b8f9b8775953f0dd
     home: https://github.com/user/appname
@@ -19,9 +19,9 @@ entries:
   autopulse:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.516377789Z"
+    created: "2026-01-12T09:04:56.054214692Z"
     description: A Helm chart for Autopulse
-    digest: 51d9ba86714f03b60e5efb22fe9428d5851aa85444e5e958c0014e41655019df
+    digest: 86a40ee125c6ade944d6f5caaf291e1ce1d7f1656fb3e0e4e15b993b5130bebd
     home: https://github.com/dan-online/autopulse
     keywords:
     - autopulse
@@ -34,7 +34,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.515659277Z"
+    created: "2026-01-12T09:04:56.053486479Z"
     description: A Helm chart for Autopulse
     digest: 7cb0b37af613d08f2e0e58eb0d2a1acb597d531616ea1d67dcbefc3c6c05b7fb
     home: https://github.com/dan-online/autopulse
@@ -49,7 +49,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.51492127Z"
+    created: "2026-01-12T09:04:56.052756331Z"
     description: A Helm chart for Autopulse
     digest: eeb749f74bdcc7158ea5e4cf8b92ffafc5f4986aef80b3a5606d3ea3c68bb325
     name: autopulse
@@ -60,7 +60,27 @@ entries:
   autoscan:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.520363088Z"
+    created: "2026-01-12T09:04:56.058505345Z"
+    description: A Helm chart to deploy autoscan
+    digest: 730e6a4c28695b4a768ab33391b90a38fc9035f237493625453bd4ba206b26f0
+    home: https://github.com/Cloudbox/autoscan
+    keywords:
+    - autoscan
+    - plex
+    - emby
+    - jellyfin
+    - scanner
+    name: autoscan
+    sources:
+    - https://github.com/Cloudbox/autoscan
+    - https://hub.docker.com/r/cloudb0x/autoscan
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/autoscan-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-01-12T09:04:56.05675283Z"
     description: A Helm chart to deploy autoscan
     digest: c921659abb362a82842e7b911e5b8602fb59e4ebed7213d64978b4c6fe7dbcb1
     home: https://github.com/Cloudbox/autoscan
@@ -80,7 +100,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.519549936Z"
+    created: "2026-01-12T09:04:56.056045495Z"
     description: A Helm chart to deploy autoscan
     digest: bd0de8188ba44143e189072ea81f192a7f6be58e804c3b5a02c89760a30f79c0
     home: https://github.com/Cloudbox/autoscan
@@ -100,7 +120,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.517425116Z"
+    created: "2026-01-12T09:04:56.055309337Z"
     description: A Helm chart to deploy autoscan
     digest: bd813c02e2175a05ce8bec0862d1bb9e4d8332175582766e5c1d097cf1899514
     home: https://github.com/Cloudbox/autoscan
@@ -120,7 +140,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.51671772Z"
+    created: "2026-01-12T09:04:56.054591112Z"
     description: A Helm chart to deploy autoscan
     digest: 723dd7b60dbe376fae3cdb54a786fecb46e7ddd4a915b7a3848da61bea5e8c40
     name: autoscan
@@ -131,9 +151,9 @@ entries:
   huntarr:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.526238401Z"
+    created: "2026-01-12T09:04:56.06461426Z"
     description: A Helm chart for Huntarr (4sonarr)
-    digest: 40dac5b96d79e350cdb71353ebd8faa61b03c4900129f328d7e498510672b91c
+    digest: 44c61f1f98124304288a953c053f8b6ace39b376c681993057512e1b41588417
     home: https://github.com/huntarr/huntarr
     keywords:
     - huntarr
@@ -151,7 +171,7 @@ entries:
     version: 0.1.9
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.525668716Z"
+    created: "2026-01-12T09:04:56.064046444Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: 2ddfc11f72a0fa48b2483076b25a169835efefac551bc1f5e35236e6a7a65c12
     home: https://github.com/huntarr/huntarr
@@ -171,7 +191,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.525103233Z"
+    created: "2026-01-12T09:04:56.063459032Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: b0440590ab69c240f5ac6579328b49599826cdc9ca721367938069eb0dd45af5
     home: https://github.com/huntarr/huntarr
@@ -191,7 +211,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.524543876Z"
+    created: "2026-01-12T09:04:56.062857875Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: 5053e5f3caee3230e1bd34c2648380534f4b72375cbdc8a52731d53f712ddc1b
     home: https://github.com/huntarr/huntarr
@@ -211,7 +231,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.523979884Z"
+    created: "2026-01-12T09:04:56.06228488Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: 4c5ef7fdeb1370045cda1d63a49d92f097044ed4ec263ccae310edbbbc0814a9
     home: https://github.com/huntarr/huntarr
@@ -231,7 +251,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.523426879Z"
+    created: "2026-01-12T09:04:56.061688642Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: ee6e735bc709936c80901ceea7a9d8bcaa2c838eeee1301efd6d8a7bd497eb69
     home: https://github.com/huntarr/huntarr
@@ -251,7 +271,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.522823668Z"
+    created: "2026-01-12T09:04:56.061060695Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: f716a8c3a0aadfc82ace9242a43bd29dbd59e89306419de43aceb53a23b9fd59
     home: https://github.com/huntarr/huntarr
@@ -271,7 +291,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.522143419Z"
+    created: "2026-01-12T09:04:56.06036404Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: faa791aead5ea8174fc2b61e05291df3e9f4f03e20eac770e12f04f4190a5d85
     home: https://github.com/huntarr/huntarr
@@ -291,7 +311,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.521474366Z"
+    created: "2026-01-12T09:04:56.059675219Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: d12ebb7c6b143219afaddbf420740745f1c20f799023de0fd5cbe03d59d7b79a
     home: https://github.com/huntarr/huntarr
@@ -311,7 +331,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.520801523Z"
+    created: "2026-01-12T09:04:56.059004993Z"
     description: A Helm chart for Huntarr (4sonarr)
     digest: 916b3249c0a0f1432d1fe08bb7a4c899474e52ecf43b83b605384edfde04aa36
     name: huntarr
@@ -322,7 +342,29 @@ entries:
   jellyseerr:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.528848064Z"
+    created: "2026-01-12T09:04:56.067920708Z"
+    description: A Helm chart to deploy Jellyseerr
+    digest: 5197a5ffcfc3b85680e16f3c557ccad88da3741bc89f054de9d86bd1e2eddab3
+    home: https://github.com/Fallenbagel/jellyseerr
+    keywords:
+    - jellyseerr
+    - media
+    - request
+    - management
+    - plex
+    - jellyfin
+    - emby
+    name: jellyseerr
+    sources:
+    - https://github.com/Fallenbagel/jellyseerr
+    - https://github.com/fallenbagel/jellyseerr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/jellyseerr-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-12T09:04:56.067344237Z"
     description: A Helm chart to deploy Jellyseerr
     digest: 05c40a3ea68be3778b5e8a8e4b93f987beda522b0204dd52022e814f6fa38454
     home: https://github.com/Fallenbagel/jellyseerr
@@ -344,7 +386,7 @@ entries:
     version: 0.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.528279007Z"
+    created: "2026-01-12T09:04:56.06612073Z"
     description: A Helm chart to deploy Jellyseerr
     digest: fffe5a4c9e8958932273e34dd69e45bf2c1d9d59bce69d0746cf093cbc5538a4
     home: https://github.com/Fallenbagel/jellyseerr
@@ -366,7 +408,7 @@ entries:
     version: 0.0.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.527171304Z"
+    created: "2026-01-12T09:04:56.065212011Z"
     description: A Helm chart to deploy Jellyseerr
     digest: 773efdbe12672401063d828476e1d99fbcb82993e863bca8192c36a3a064b3c0
     home: https://github.com/Fallenbagel/jellyseerr
@@ -389,7 +431,26 @@ entries:
   jellystat:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.530420559Z"
+    created: "2026-01-12T09:04:56.07026748Z"
+    description: A Helm chart to deploy Jellystat
+    digest: a150436a5f2b1b3c54e16bf22118cc9d6604c78765de92b8b70e78541bd7257b
+    home: https://github.com/CyferShepard/Jellystat
+    keywords:
+    - jellystat
+    - jellyfin
+    - statistics
+    - monitoring
+    name: jellystat
+    sources:
+    - https://github.com/CyferShepard/Jellystat
+    - https://hub.docker.com/r/cyfershepard/jellystat
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/jellystat-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-01-12T09:04:56.06950313Z"
     description: A Helm chart to deploy Jellystat
     digest: 04ca9ee93cbf0bc88eb6f4bab9c748cd0c2e3ab87a7a65a8081b1ad36fd36e45
     home: https://github.com/CyferShepard/Jellystat
@@ -408,7 +469,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.52967797Z"
+    created: "2026-01-12T09:04:56.068729732Z"
     description: A Helm chart to deploy Jellystat
     digest: 2f45bea32c4288bea76fa787d5aecd4b6063c6e9accafcba554544ad021c701f
     home: https://github.com/CyferShepard/Jellystat
@@ -428,7 +489,28 @@ entries:
   lidarr:
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.547690562Z"
+    created: "2026-01-12T09:04:56.088428382Z"
+    description: A Helm chart to deploy Lidarr
+    digest: 2e292039fd6f3941776632b247ad9e66ec82ce4d4e148a5eb202137730de61ab
+    home: https://lidarr.audio/
+    keywords:
+    - lidarr
+    - music
+    - download
+    - usenet
+    - bittorrent
+    name: lidarr
+    sources:
+    - https://github.com/Lidarr/Lidarr
+    - https://github.com/linuxserver/docker-lidarr
+    - https://lscr.io/linuxserver/lidarr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/lidarr-0.2.14.tgz
+    version: 0.2.14
+  - apiVersion: v2
+    appVersion: 2.0.0
+    created: "2026-01-12T09:04:56.087571839Z"
     description: A Helm chart to deploy Lidarr
     digest: e4f4bb2950a38bf4cee97f05ffc273b186e06b3c49f1d9ad581754bdd613416b
     home: https://lidarr.audio/
@@ -449,7 +531,7 @@ entries:
     version: 0.2.13
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.546861245Z"
+    created: "2026-01-12T09:04:56.086702995Z"
     description: A Helm chart to deploy Lidarr
     digest: 2d634624684600dfd705ed0f95aef2289684064d25ff4a17cef199817d996738
     home: https://lidarr.audio/
@@ -470,7 +552,7 @@ entries:
     version: 0.2.12
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.546002108Z"
+    created: "2026-01-12T09:04:56.085877721Z"
     description: A Helm chart to deploy Lidarr
     digest: 07445141eb2dab3c34065dc73094de51f25b9e9431254b11bb0194f3d5289192
     home: https://lidarr.audio/
@@ -491,7 +573,7 @@ entries:
     version: 0.2.11
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.544839328Z"
+    created: "2026-01-12T09:04:56.085018323Z"
     description: A Helm chart to deploy Lidarr
     digest: c52e41613fdce12377f3712de737e73dd27c12662a745e7f1c819aebba1d345a
     home: https://lidarr.audio/
@@ -512,7 +594,7 @@ entries:
     version: 0.2.10
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.555272082Z"
+    created: "2026-01-12T09:04:56.096573819Z"
     description: A Helm chart to deploy Lidarr
     digest: 68f59433f5678fe6118760a503238a1d3240aa5189b17553d0587b5b778f5595
     home: https://lidarr.audio/
@@ -533,7 +615,7 @@ entries:
     version: 0.2.9
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.554377084Z"
+    created: "2026-01-12T09:04:56.095703532Z"
     description: A Helm chart to deploy Lidarr
     digest: 0b5658a1e6e6472e95f23e700ce124036cc3275b5c986f2755a0abc6d88293cb
     home: https://lidarr.audio/
@@ -554,7 +636,7 @@ entries:
     version: 0.2.8
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.552603688Z"
+    created: "2026-01-12T09:04:56.094833675Z"
     description: A Helm chart to deploy Lidarr
     digest: ce7f985150d1640046ccb64615cb4c5e6ddc7c1926e586f0e6db9dc22f8ef900
     home: https://lidarr.audio/
@@ -575,7 +657,7 @@ entries:
     version: 0.2.7
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.551785625Z"
+    created: "2026-01-12T09:04:56.09397528Z"
     description: A Helm chart to deploy Lidarr
     digest: 3d91264fd2a8bfbfdbdb9ea478a535fcee7d687edacd90c677dc2f8b4aa7a14c
     home: https://lidarr.audio/
@@ -596,7 +678,7 @@ entries:
     version: 0.2.6
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.550968154Z"
+    created: "2026-01-12T09:04:56.093067803Z"
     description: A Helm chart to deploy Lidarr
     digest: fb066f9cc0f8c6663f0591163e5ac6c35cd29e8fd5ea60eb33a0bebf56d57600
     home: https://lidarr.audio/
@@ -617,7 +699,7 @@ entries:
     version: 0.2.5
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.550166204Z"
+    created: "2026-01-12T09:04:56.09111776Z"
     description: A Helm chart to deploy Lidarr
     digest: 0fd3f89aecc0eb5760c7cf6d8ba921f718b015484c762ee4c0884fe4b4c849b4
     home: https://lidarr.audio/
@@ -638,7 +720,7 @@ entries:
     version: 0.2.4
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.549355822Z"
+    created: "2026-01-12T09:04:56.090141215Z"
     description: A Helm chart to deploy Lidarr
     digest: 09c99cc6ebbd4817661fbb1269973afbe327323b737523e4b9561c6d7c87a8c8
     home: https://lidarr.audio/
@@ -659,7 +741,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.548512211Z"
+    created: "2026-01-12T09:04:56.089308046Z"
     description: A Helm chart to deploy Lidarr
     digest: 2e5e83fbd4911009d92b81c94ec5145761b140f38ae38f9c9f4f7fe884a5b68d
     home: https://lidarr.audio/
@@ -680,7 +762,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.543339751Z"
+    created: "2026-01-12T09:04:56.084136434Z"
     description: A Helm chart to deploy Lidarr
     digest: ddeacca8d0eee24c2eb2e1171a16f40c85e57e25649fe0bfd3b877f6a9fefcb2
     home: https://lidarr.audio/
@@ -701,7 +783,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.54248691Z"
+    created: "2026-01-12T09:04:56.082170329Z"
     description: A Helm chart to deploy Lidarr
     digest: 68b659c6ba08068946aa48ff64f71f0297218c09c0bd7568c7d59bb895c77375
     home: https://lidarr.audio/
@@ -722,7 +804,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.541640631Z"
+    created: "2026-01-12T09:04:56.081242414Z"
     description: A Helm chart to deploy Lidarr
     digest: 0aaa1e31af7af959291e35473e9205b67256df178882ffecd3dc1a335db96dfe
     home: https://lidarr.audio/
@@ -743,7 +825,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.540806826Z"
+    created: "2026-01-12T09:04:56.080414506Z"
     description: A Helm chart to deploy Lidarr
     digest: 99aa9e3ea5fb6429d4f5a049274a110646e6afa2374c49457b97e25858a6a0b8
     home: https://lidarr.audio/
@@ -764,7 +846,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.539985941Z"
+    created: "2026-01-12T09:04:56.079587158Z"
     description: A Helm chart to deploy Lidarr
     digest: b9a191d1e7a4e97f78a1a9d82faaae9bd0bff7f4b613c96b18716aa76c3045aa
     home: https://lidarr.audio/
@@ -785,7 +867,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.539110522Z"
+    created: "2026-01-12T09:04:56.078745373Z"
     description: A Helm chart to deploy Lidarr
     digest: 7e3b18fc77ab461928b7f01bd6fc285c42a50880dced5982dab5596e6cacd9b7
     home: https://lidarr.audio/
@@ -806,7 +888,7 @@ entries:
     version: 0.1.0
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.538288852Z"
+    created: "2026-01-12T09:04:56.077906224Z"
     description: A Helm chart to deploy Lidarr
     digest: 631d6c60f063c03a5d2f5e425051481a983d8fa8f28c751f6a7af8229f9335b5
     home: https://lidarr.audio/
@@ -827,7 +909,7 @@ entries:
     version: 0.0.9
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.537438298Z"
+    created: "2026-01-12T09:04:56.077067535Z"
     description: A Helm chart to deploy Lidarr
     digest: 3a3d75a025b8a23c7a81fd9a13bd46b5946ab3879cea1df3c50ffb28db61f731
     home: https://lidarr.audio/
@@ -848,7 +930,7 @@ entries:
     version: 0.0.8
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.536727782Z"
+    created: "2026-01-12T09:04:56.076395415Z"
     description: A Helm chart to deploy Lidarr
     digest: 19a1f2581c1d4f53bd1658c36451bc6f3f97944e0b4362c9abb705aa030c1078
     home: https://lidarr.audio/
@@ -869,7 +951,7 @@ entries:
     version: 0.0.7
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.534820155Z"
+    created: "2026-01-12T09:04:56.075629922Z"
     description: A Helm chart to deploy Lidarr
     digest: 42575ddebcfd4971fc00b5f7c0a34997e0277663e156c84ae5d1ffe331478523
     home: https://lidarr.audio/
@@ -890,7 +972,7 @@ entries:
     version: 0.0.6
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.53378292Z"
+    created: "2026-01-12T09:04:56.073922023Z"
     description: A Helm chart to deploy Lidarr
     digest: 31d9f7666c6327663bdbc685149104def54e9374a0bcf98ad7508f76899c6ef7
     home: https://lidarr.audio/
@@ -911,7 +993,7 @@ entries:
     version: 0.0.5
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.533075899Z"
+    created: "2026-01-12T09:04:56.073008345Z"
     description: A Helm chart to deploy Lidarr
     digest: 0ef06adf5974a7165562d89aa680f45770aa44ceed1cc723d6d1acf890a1342f
     home: https://lidarr.audio/
@@ -932,7 +1014,7 @@ entries:
     version: 0.0.4
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.532389481Z"
+    created: "2026-01-12T09:04:56.07230626Z"
     description: A Helm chart to deploy Lidarr
     digest: 568b3fce92881c3b2565021562903d54d8da4cec088106ea5aff4eac5f2a6b0d
     home: https://lidarr.audio/
@@ -953,7 +1035,7 @@ entries:
     version: 0.0.3
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.531690423Z"
+    created: "2026-01-12T09:04:56.071599126Z"
     description: A Helm chart to deploy Lidarr
     digest: ae30c2b67d317b58e78a502821ba74ab2b6c0735056e10124f74579f1e3e5ec2
     home: https://lidarr.audio/
@@ -974,7 +1056,7 @@ entries:
     version: 0.0.2
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2026-01-05T11:40:58.531006886Z"
+    created: "2026-01-12T09:04:56.070881942Z"
     description: A Helm chart to deploy Lidarr
     digest: 9a0ab7ae020b2a66a965586686c7b04c5e3898c56ae983ff45df74002f89d4c4
     home: https://lidarr.audio/
@@ -996,7 +1078,27 @@ entries:
   maintainerr:
   - apiVersion: v2
     appVersion: "2"
-    created: "2026-01-05T11:40:58.555742724Z"
+    created: "2026-01-12T09:04:56.097608092Z"
+    description: A Helm chart to deploy Maintainerr
+    digest: cd849f12f10e68bf991316e2ba02cd7cba1316941874c74cd78df30798535eae
+    home: https://github.com/maintainerr/maintainerr
+    keywords:
+    - maintainerr
+    - media
+    - plex
+    - jellyfin
+    - automation
+    - cleanup
+    name: maintainerr
+    sources:
+    - https://github.com/maintainerr/maintainerr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/maintainerr-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v2
+    appVersion: "2"
+    created: "2026-01-12T09:04:56.097086002Z"
     description: A Helm chart to deploy Maintainerr
     digest: 20f7a6bd7493e7d5b4368757bdff85a6ecb3c3745124f27eea68405fe9758925
     home: https://github.com/maintainerr/maintainerr
@@ -1017,7 +1119,27 @@ entries:
   overseerr:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.558573717Z"
+    created: "2026-01-12T09:04:56.102520758Z"
+    description: A Helm chart to deploy Overseerr - a request management and media
+      discovery tool for the Plex ecosystem
+    digest: 567038492dd27ec7ad55e4cd0dae4d517c62372e9f937cac96b0299d68c8cd97
+    home: https://overseerr.dev/
+    keywords:
+    - overseerr
+    - plex
+    - requests
+    - media
+    name: overseerr
+    sources:
+    - https://github.com/sct/overseerr
+    - https://hub.docker.com/r/sctx/overseerr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/overseerr-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-12T09:04:56.101494466Z"
     description: A Helm chart to deploy Overseerr - a request management and media
       discovery tool for the Plex ecosystem
     digest: edaef883c33cead776b5a21388c63190d1c1d8742eca0a7950e254bd6d694a23
@@ -1037,7 +1159,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.557920638Z"
+    created: "2026-01-12T09:04:56.099988006Z"
     description: A Helm chart to deploy Overseerr - a request management and media
       discovery tool for the Plex ecosystem
     digest: 1420f5494f037909bbd974958fc291fef35c07fae63ed05b8724171c5c8d0cd0
@@ -1057,7 +1179,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.557317311Z"
+    created: "2026-01-12T09:04:56.099312149Z"
     description: A Helm chart to deploy Overseerr - a request management and media
       discovery tool for the Plex ecosystem
     digest: 8aabec48bd4343eed2bb3333089c0f9d1dda13708bf06d69ebd2ac66ec6cbedb
@@ -1077,7 +1199,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.556696621Z"
+    created: "2026-01-12T09:04:56.098631845Z"
     description: A Helm chart to deploy Overseerr - a request management and media
       discovery tool for the Plex ecosystem
     digest: 8821868110b1abceb8c6465cf2af518ac24619d3f04615ff7c45b2bdef311bcf
@@ -1097,7 +1219,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.556066364Z"
+    created: "2026-01-12T09:04:56.097981767Z"
     description: A Helm chart to deploy Overseerr - a request management and media
       discovery tool for the Plex ecosystem
     digest: c3e7d13f793ccf2f4cad09f412cfb03ffd6daaca45f6ad4528dae7847a4e8ba7
@@ -1109,7 +1231,26 @@ entries:
   prowlarr:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.569627233Z"
+    created: "2026-01-12T09:04:56.114671546Z"
+    description: A Helm chart for Prowlarr
+    digest: c28e8b831bf16f25f1184b4d89376991577e59f07822d5ffb7b48b5fdbdaff0b
+    home: https://github.com/Prowlarr/Prowlarr
+    keywords:
+    - prowlarr
+    - indexer
+    - torrent
+    - usenet
+    name: prowlarr
+    sources:
+    - https://github.com/Prowlarr/Prowlarr
+    - https://hub.docker.com/r/linuxserver/prowlarr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/prowlarr-1.1.8.tgz
+    version: 1.1.8
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-01-12T09:04:56.113883001Z"
     description: A Helm chart for Prowlarr
     digest: b9dbc1d29a342c2a9543e01a056e95531fff7268ee5ea1a338dc2f22feb8d403
     home: https://github.com/Prowlarr/Prowlarr
@@ -1128,7 +1269,7 @@ entries:
     version: 1.1.7
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.568875395Z"
+    created: "2026-01-12T09:04:56.113093974Z"
     description: A Helm chart for Prowlarr
     digest: a919c746cc3a53ae8993df6670bb58232aaa7699429e41c5b2f2c982c6d3ac85
     home: https://github.com/Prowlarr/Prowlarr
@@ -1147,7 +1288,7 @@ entries:
     version: 1.1.6
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.568107652Z"
+    created: "2026-01-12T09:04:56.112297013Z"
     description: A Helm chart for Prowlarr
     digest: d3d90936e9a66c545e02bd82e7766777208a7a6839f2f236ca8d77b0df0a2026
     home: https://github.com/Prowlarr/Prowlarr
@@ -1166,7 +1307,7 @@ entries:
     version: 1.1.5
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.567347949Z"
+    created: "2026-01-12T09:04:56.111476487Z"
     description: A Helm chart for Prowlarr
     digest: f50cd106cb52cb3724f2373ab82bbb64adb2af73aae42fb97b967eebd7dc1b43
     home: https://github.com/Prowlarr/Prowlarr
@@ -1185,7 +1326,7 @@ entries:
     version: 1.1.4
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.566589853Z"
+    created: "2026-01-12T09:04:56.110407197Z"
     description: A Helm chart for Prowlarr
     digest: 8a588272bbe2d400abf1b182f4f322b955de93721bd71276be1bcf397ab8cf6c
     home: https://github.com/Prowlarr/Prowlarr
@@ -1204,7 +1345,7 @@ entries:
     version: 1.1.3
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.565810575Z"
+    created: "2026-01-12T09:04:56.109019708Z"
     description: A Helm chart for Prowlarr
     digest: b3b9b8a19a396d6068dd6e31a39f8c104b73c0464063abdfe1fb22a292c65d07
     home: https://github.com/Prowlarr/Prowlarr
@@ -1223,7 +1364,7 @@ entries:
     version: 1.1.2
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.565032394Z"
+    created: "2026-01-12T09:04:56.10817074Z"
     description: A Helm chart for Prowlarr
     digest: 8a3a7e9171e2176b8b42dcbe918e02e3a9830d948b80970c9a88b72f938b31a1
     home: https://github.com/Prowlarr/Prowlarr
@@ -1242,7 +1383,7 @@ entries:
     version: 1.1.1
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.564266093Z"
+    created: "2026-01-12T09:04:56.107371324Z"
     description: A Helm chart for Prowlarr
     digest: d5ebe1e75bd725654f3b3a41222e1b45200f7d4246eabef73463ad2338f9ed4c
     home: https://github.com/Prowlarr/Prowlarr
@@ -1261,7 +1402,7 @@ entries:
     version: 1.1.0
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.563505733Z"
+    created: "2026-01-12T09:04:56.106561228Z"
     description: A Helm chart for Prowlarr
     digest: 94fad8b06be52a5e763c5f2116761a4c918e1566a7c77b2a634c7e50be4cde35
     home: https://github.com/Prowlarr/Prowlarr
@@ -1280,7 +1421,7 @@ entries:
     version: 1.0.4
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.562703066Z"
+    created: "2026-01-12T09:04:56.105784184Z"
     description: A Helm chart to deploy Prowlarr
     digest: eee96d41ebd6352cef776c46e95b177a322e99354a1c183a7bcb0820207bec22
     home: https://github.com/Prowlarr/Prowlarr
@@ -1299,7 +1440,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.560876532Z"
+    created: "2026-01-12T09:04:56.105015044Z"
     description: A Helm chart to deploy Prowlarr
     digest: 83a55741491000c8fcdd193e62838d4d41ddf249607cc1695f4b15874d978d0b
     home: https://github.com/Prowlarr/Prowlarr
@@ -1318,7 +1459,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.560256755Z"
+    created: "2026-01-12T09:04:56.104342144Z"
     description: A Helm chart to deploy Prowlarr
     digest: dda73e1508ce0ea872d2e6816b76e6308f71d7ae0d274371509d23d2a99cd5de
     home: https://github.com/Prowlarr/Prowlarr
@@ -1337,7 +1478,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.559607243Z"
+    created: "2026-01-12T09:04:56.103658733Z"
     description: A Helm chart to deploy Prowlarr
     digest: 5b0cf8b45e1070f503c8c5efa43c765152150a0fe5ffa430d4468a6a778c43d8
     home: https://github.com/Prowlarr/Prowlarr
@@ -1356,7 +1497,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2026-01-05T11:40:58.558937926Z"
+    created: "2026-01-12T09:04:56.102994268Z"
     description: A Helm chart to deploy Prowlarr
     digest: 6a8a7baea3e0826512aa5749ab82b41eb937849abcf5dc9e2e4310298fb88fc0
     name: prowlarr
@@ -1367,7 +1508,26 @@ entries:
   qbittorrent:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.574065205Z"
+    created: "2026-01-12T09:04:56.119369629Z"
+    description: A Helm chart to deploy qBittorrent
+    digest: ca4410aec1ba80968d55c6ff45e2a8bc76922266124a16b6574938aaeb6fbc41
+    home: https://www.qbittorrent.org/
+    keywords:
+    - qbittorrent
+    - bittorrent
+    - download
+    name: qbittorrent
+    sources:
+    - https://github.com/qbittorrent/qBittorrent
+    - https://github.com/linuxserver/docker-qbittorrent
+    - https://lscr.io/linuxserver/qbittorrent
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/qbittorrent-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-12T09:04:56.11829453Z"
     description: A Helm chart to deploy qBittorrent
     digest: 7ce134c38577722c57be90f002ad604c1107fb8b55308d999594eda14a1ee77d
     home: https://www.qbittorrent.org/
@@ -1386,7 +1546,7 @@ entries:
     version: 1.0.4
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.573447671Z"
+    created: "2026-01-12T09:04:56.117617933Z"
     description: A Helm chart to deploy qBittorrent
     digest: 959c60e4b4e2225be0033ad6f69bf12ed27187261793e7f441c5751dd46ddf0e
     home: https://www.qbittorrent.org/
@@ -1405,7 +1565,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.572851231Z"
+    created: "2026-01-12T09:04:56.116968556Z"
     description: A Helm chart to deploy qBittorrent
     digest: 1da9445341be0abff046d4ff9d2778b0b771be1236c9ce89fe393678c27c8b11
     home: https://www.qbittorrent.org/
@@ -1424,7 +1584,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.572258703Z"
+    created: "2026-01-12T09:04:56.116339396Z"
     description: A Helm chart to deploy qBittorrent
     digest: 65d1d21b34025ceb8e3a7583d4118c7b9878bdd624d12ad8e0d0e444855328aa
     home: https://www.qbittorrent.org/
@@ -1443,7 +1603,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.571588268Z"
+    created: "2026-01-12T09:04:56.115683076Z"
     description: A Helm chart to deploy qBittorrent
     digest: 1c797add92c63aba80a53b50cd54e50150e1ffb5a5e489e964f85f6b508d2336
     home: https://www.qbittorrent.org/
@@ -1462,7 +1622,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.570205873Z"
+    created: "2026-01-12T09:04:56.115056161Z"
     description: A Helm chart to deploy qBittorrent
     digest: a9cf8ad3c29797244884b7aefc31f03d93ae13ceedbf091518703bddf1a73838
     name: qbittorrent
@@ -1473,7 +1633,28 @@ entries:
   radarr:
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.585860184Z"
+    created: "2026-01-12T09:04:56.133637219Z"
+    description: A Helm chart to deploy Radarr
+    digest: 077895f17054a5a0429207d12fc23b9f7d8e1941bc5c49946d1a36f3c9fdc43a
+    home: https://radarr.video/
+    keywords:
+    - radarr
+    - movies
+    - download
+    - usenet
+    - bittorrent
+    name: radarr
+    sources:
+    - https://github.com/Radarr/Radarr
+    - https://github.com/linuxserver/docker-radarr
+    - https://lscr.io/linuxserver/radarr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/radarr-1.0.20.tgz
+    version: 1.0.20
+  - apiVersion: v2
+    appVersion: 4.0.0
+    created: "2026-01-12T09:04:56.132053635Z"
     description: A Helm chart to deploy Radarr
     digest: 3783c063b54dae302ea9e8cf0c62e43f9b38ffc5eb4e3d14c466a4aeb8bbc1f7
     home: https://radarr.video/
@@ -1494,7 +1675,7 @@ entries:
     version: 1.0.19
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.584990289Z"
+    created: "2026-01-12T09:04:56.131182616Z"
     description: A Helm chart to deploy Radarr
     digest: e5bddc8737fd8d89c05b238a74203f961d2bcfb0341d6b360655de9f88791a3f
     home: https://radarr.video/
@@ -1515,7 +1696,7 @@ entries:
     version: 1.0.18
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.584106115Z"
+    created: "2026-01-12T09:04:56.13030779Z"
     description: A Helm chart to deploy Radarr
     digest: 38c0bfeaa7ae730ebcbb7fe95d164753c402e4734e6f8aa2b091aecbb36cbc70
     home: https://radarr.video/
@@ -1536,7 +1717,7 @@ entries:
     version: 1.0.17
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.58323236Z"
+    created: "2026-01-12T09:04:56.129405743Z"
     description: A Helm chart to deploy Radarr
     digest: e3b3150515bdbf67b00d581da6d74a846ac99a1550583cbb95a72e48732218fd
     home: https://radarr.video/
@@ -1557,7 +1738,7 @@ entries:
     version: 1.0.16
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.58237355Z"
+    created: "2026-01-12T09:04:56.1274687Z"
     description: A Helm chart to deploy Radarr
     digest: 3ed16f2cf76341194703cd946d556bc348f81a9d3d23f3c2ca9bb574af84bc46
     home: https://radarr.video/
@@ -1578,7 +1759,7 @@ entries:
     version: 1.0.15
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.58149057Z"
+    created: "2026-01-12T09:04:56.12658674Z"
     description: A Helm chart to deploy Radarr
     digest: 43ef4afb55c49fc5169de7156804dbb7ce122cb9cfbf9212d7840395e68b634f
     home: https://radarr.video/
@@ -1599,7 +1780,7 @@ entries:
     version: 1.0.14
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.580634298Z"
+    created: "2026-01-12T09:04:56.125691557Z"
     description: A Helm chart to deploy Radarr
     digest: 4eb4b2dcd85ead8310db9af2320168e01a849151bbe637bf1d4df700edaf373f
     home: https://radarr.video/
@@ -1620,7 +1801,7 @@ entries:
     version: 1.0.13
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.579671962Z"
+    created: "2026-01-12T09:04:56.124810258Z"
     description: A Helm chart to deploy Radarr
     digest: 44d213e3ef93e366a55b8d7c1ef5a684092b3242dcd43996bb623ea3f67fb451
     home: https://radarr.video/
@@ -1641,7 +1822,7 @@ entries:
     version: 1.0.12
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.577795246Z"
+    created: "2026-01-12T09:04:56.123924111Z"
     description: A Helm chart to deploy Radarr
     digest: 594661d4e3ab1fbf31315a42136920df434ce5f0986e08474fed35fa5bfdf9fe
     home: https://radarr.video/
@@ -1662,7 +1843,7 @@ entries:
     version: 1.0.11
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.576940986Z"
+    created: "2026-01-12T09:04:56.123055276Z"
     description: A Helm chart to deploy Radarr
     digest: 4ca3222addbb5420abd666c0bb4e3d71a64eb65f1fbbf38623e32e6c6e918a97
     home: https://radarr.video/
@@ -1683,7 +1864,7 @@ entries:
     version: 1.0.10
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.591994767Z"
+    created: "2026-01-12T09:04:56.139150573Z"
     description: A Helm chart to deploy Radarr
     digest: 037ad9a1b9f88b1a8ec734f9c9fd54faa091f6676581afc771c59ba973bafd31
     home: https://radarr.video/
@@ -1704,7 +1885,7 @@ entries:
     version: 1.0.8
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.591110388Z"
+    created: "2026-01-12T09:04:56.138252755Z"
     description: A Helm chart to deploy Radarr
     digest: 342640c2a90abcc7b15221b0ba8869b307107b6423a869c4d4133180074e7396
     home: https://radarr.video/
@@ -1725,7 +1906,7 @@ entries:
     version: 1.0.7
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.590247196Z"
+    created: "2026-01-12T09:04:56.136409892Z"
     description: A Helm chart to deploy Radarr
     digest: 536b820fa950bef646c68056419efb6af0f0837bd2a9b3a7895875813712d30c
     home: https://radarr.video/
@@ -1746,7 +1927,7 @@ entries:
     version: 1.0.6
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.589604603Z"
+    created: "2026-01-12T09:04:56.135674194Z"
     description: A Helm chart to deploy Radarr
     digest: 53c8b5ff9faf7035308d1cf377c5fc8f0f98bfa70a2f6e4e62ca72660f6a47ea
     home: https://radarr.video/
@@ -1767,7 +1948,7 @@ entries:
     version: 1.0.5
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.588890845Z"
+    created: "2026-01-12T09:04:56.135018907Z"
     description: A Helm chart to deploy Radarr
     digest: d03dc20c06997651e7decc1bb7b3d847228d341a84d1807aed0386a82ea34a09
     home: https://radarr.video/
@@ -1788,7 +1969,7 @@ entries:
     version: 1.0.4
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.587952734Z"
+    created: "2026-01-12T09:04:56.134341598Z"
     description: A Helm chart to deploy Radarr
     digest: 9f9d15516371c022fc536e5e6bb6861b93437c4183bf65a7d4fa82150e137178
     home: https://radarr.video/
@@ -1809,7 +1990,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.58657135Z"
+    created: "2026-01-12T09:04:56.132773733Z"
     description: A Helm chart to deploy Radarr
     digest: 50379fca8072ff5263ab844711239789cb8efbea8b967f205372550d854d3f39
     home: https://radarr.video/
@@ -1830,7 +2011,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.576103884Z"
+    created: "2026-01-12T09:04:56.122156466Z"
     description: A Helm chart to deploy Radarr
     digest: 2a97f6edac6e97f6589b6eda7d2492719d3f70456e70d3aba674ddbc308ce953
     home: https://radarr.video/
@@ -1851,7 +2032,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.575460636Z"
+    created: "2026-01-12T09:04:56.121436938Z"
     description: A Helm chart to deploy Radarr
     digest: b2728682caeadb3fb036f839316ec2b7724a7712c3328e5d85275c669d0d1d4d
     home: https://radarr.video/
@@ -1872,7 +2053,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.574769868Z"
+    created: "2026-01-12T09:04:56.120730766Z"
     description: A Helm chart to deploy Radarr
     digest: 212a6aa54e3c0011796098c2ad5ee979e8c5c449fa1e49bdfad2bd0bec888349
     name: radarr
@@ -1882,7 +2063,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.574408798Z"
+    created: "2026-01-12T09:04:56.120313751Z"
     description: A Helm chart to deploy Radarr
     digest: f3abdb5374fcfcd327367ccb39117628588ac174f393746d38b130f110e179da
     name: radarr
@@ -1893,7 +2074,26 @@ entries:
   sabnzbd:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.596936823Z"
+    created: "2026-01-12T09:04:56.144467326Z"
+    description: A Helm chart for Sabnzbd Usenet downloader
+    digest: df2754264649e41d056e603108e84cff6d6932ea06bba1d2f792486252d52b42
+    home: https://sabnzbd.org/
+    keywords:
+    - sabnzbd
+    - usenet
+    - download
+    name: sabnzbd
+    sources:
+    - https://github.com/sabnzbd/sabnzbd
+    - https://github.com/linuxserver/docker-sabnzbd
+    - https://lscr.io/linuxserver/sabnzbd
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/sabnzbd-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-12T09:04:56.143761674Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: a271f4a14d12ff863a2e4292b882af700e8d11145dc0b764aedc82fadbed4286
     home: https://sabnzbd.org/
@@ -1912,7 +2112,7 @@ entries:
     version: 1.0.4
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.595687977Z"
+    created: "2026-01-12T09:04:56.142627456Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: 367f3a2420f4c4ae7b48525e8ef117eee32c068a29c965c5f6e2e1e6db6d146d
     home: https://sabnzbd.org/
@@ -1931,7 +2131,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.594643113Z"
+    created: "2026-01-12T09:04:56.141906646Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: 2489125b29e5c89c26164e1dcb03ed057a04d5ab3cce3f560cb53a7c087b3be7
     home: https://sabnzbd.org/
@@ -1950,7 +2150,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.593971546Z"
+    created: "2026-01-12T09:04:56.141230519Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: 06f69e20a01325baaef28d163f8cff21f97be661996f6c4f335f9d4358c84afc
     home: https://sabnzbd.org/
@@ -1969,7 +2169,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.593342943Z"
+    created: "2026-01-12T09:04:56.140523686Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: f0fa63844f1f931e95e3aab68f7b3055d0960f916385c882ec467fbff90322f6
     home: https://sabnzbd.org/
@@ -1988,7 +2188,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.592688118Z"
+    created: "2026-01-12T09:04:56.139867867Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: 46df9742f0ecc95d623be8100c4c199dcb75facaa66fabeee4c909bd72ea0c4d
     name: sabnzbd
@@ -1998,7 +2198,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.592328381Z"
+    created: "2026-01-12T09:04:56.139484224Z"
     description: A Helm chart for Sabnzbd Usenet downloader
     digest: 6d33808e34ece603eaff4c34f6102758e389831648c8755cab282bbcb766252a
     name: sabnzbd
@@ -2009,7 +2209,29 @@ entries:
   sonarr:
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.609006626Z"
+    created: "2026-01-12T09:04:56.160448451Z"
+    description: A Helm chart to deploy Sonarr
+    digest: 6fa9fd50bc905126e9f58d754fe665ac5784be805b5fb6ad6c4da3a7bb4bd376
+    home: https://sonarr.tv/
+    keywords:
+    - sonarr
+    - tv
+    - series
+    - download
+    - usenet
+    - bittorrent
+    name: sonarr
+    sources:
+    - https://github.com/Sonarr/Sonarr
+    - https://github.com/linuxserver/docker-sonarr
+    - https://lscr.io/linuxserver/sonarr
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/sonarr-1.0.20.tgz
+    version: 1.0.20
+  - apiVersion: v2
+    appVersion: 4.0.0
+    created: "2026-01-12T09:04:56.1587478Z"
     description: A Helm chart to deploy Sonarr
     digest: 13c82cb7c0ea88b4ed3ed7bce7066cade1b86b710551e297c6d260d6827a54e1
     home: https://sonarr.tv/
@@ -2031,7 +2253,7 @@ entries:
     version: 1.0.19
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.608138728Z"
+    created: "2026-01-12T09:04:56.157296001Z"
     description: A Helm chart to deploy Sonarr
     digest: d12bb862eb87fac67575a615fb0a6da1839472dc28baa5f41af91640bb731d78
     home: https://sonarr.tv/
@@ -2053,7 +2275,7 @@ entries:
     version: 1.0.18
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.607225033Z"
+    created: "2026-01-12T09:04:56.156048983Z"
     description: A Helm chart to deploy Sonarr
     digest: 95290cab63ff37a3debd5fa87f04a5c9770b005bfd8589ad6ff55c6e36227baa
     home: https://sonarr.tv/
@@ -2075,7 +2297,7 @@ entries:
     version: 1.0.17
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.60625235Z"
+    created: "2026-01-12T09:04:56.154145538Z"
     description: A Helm chart to deploy Sonarr
     digest: a7c65b3825e968a6982e5e4c32882e294d6f5d14e4ad3e807f7cd66de919e86c
     home: https://sonarr.tv/
@@ -2097,7 +2319,7 @@ entries:
     version: 1.0.16
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.604970246Z"
+    created: "2026-01-12T09:04:56.153246748Z"
     description: A Helm chart to deploy Sonarr
     digest: 6ff70bf393aa79de28427927aa4dd74435d9c643412f54abb016c0eff0a0cf0e
     home: https://sonarr.tv/
@@ -2119,7 +2341,7 @@ entries:
     version: 1.0.15
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.603495624Z"
+    created: "2026-01-12T09:04:56.152335684Z"
     description: A Helm chart to deploy Sonarr
     digest: 0654ebee84fad39af93cb6749f650ad488824fb0d1c04781226069669782b3b6
     home: https://sonarr.tv/
@@ -2141,7 +2363,7 @@ entries:
     version: 1.0.14
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.602584681Z"
+    created: "2026-01-12T09:04:56.151428478Z"
     description: A Helm chart to deploy Sonarr
     digest: e919ee950155736c8b3560fa7c6904f86766c4ca14050b75c71469b24eb6a940
     home: https://sonarr.tv/
@@ -2163,7 +2385,7 @@ entries:
     version: 1.0.13
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.601680206Z"
+    created: "2026-01-12T09:04:56.150508818Z"
     description: A Helm chart to deploy Sonarr
     digest: 517e1d1fabccee47c15959ce2f880870da059c3903adbf91a85a81e9f3d905bd
     home: https://sonarr.tv/
@@ -2185,7 +2407,7 @@ entries:
     version: 1.0.12
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.600809431Z"
+    created: "2026-01-12T09:04:56.149610879Z"
     description: A Helm chart to deploy Sonarr
     digest: f4cd0a2b8735e99ee6f44d49b39acd3bf5f3c9b4342a4731ead6e29c908f7b35
     home: https://sonarr.tv/
@@ -2207,7 +2429,7 @@ entries:
     version: 1.0.11
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.599940566Z"
+    created: "2026-01-12T09:04:56.148673437Z"
     description: A Helm chart to deploy Sonarr
     digest: 790e299b50746feab12dba1c8e5b134517a95ca03ba5f77c76c7380107cfdb1e
     home: https://sonarr.tv/
@@ -2229,7 +2451,7 @@ entries:
     version: 1.0.10
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.612504963Z"
+    created: "2026-01-12T09:04:56.163384859Z"
     description: A Helm chart to deploy Sonarr
     digest: 7c8e058ae1c9ba9a179070c4e410770429714abdd4b86a5d06aeb0808643ee79
     home: https://sonarr.tv/
@@ -2251,7 +2473,7 @@ entries:
     version: 1.0.6
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.61166671Z"
+    created: "2026-01-12T09:04:56.162517687Z"
     description: A Helm chart to deploy Sonarr
     digest: eaa8818b811f8142cf474ad5cdcbdf4c49934f2605b604bdbc7d6be9af1e6d29
     home: https://sonarr.tv/
@@ -2273,7 +2495,7 @@ entries:
     version: 1.0.5
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.610998998Z"
+    created: "2026-01-12T09:04:56.161840568Z"
     description: A Helm chart to deploy Sonarr
     digest: 8fa661ac63ac2349940fda87877762607b357a1c12dba0aff74487c4e081cfbe
     home: https://sonarr.tv/
@@ -2295,7 +2517,7 @@ entries:
     version: 1.0.4
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.610385244Z"
+    created: "2026-01-12T09:04:56.161173669Z"
     description: A Helm chart to deploy Sonarr
     digest: 57a3654192fcf71378da65909d00773954be699be578c4c5ec8efeea225880ef
     home: https://sonarr.tv/
@@ -2317,7 +2539,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.609681751Z"
+    created: "2026-01-12T09:04:56.159500879Z"
     description: A Helm chart to deploy Sonarr
     digest: bb44bfc429eace2ad7820dcce4cffbd95b5392913e1e276554953ef60bcb8742
     home: https://sonarr.tv/
@@ -2339,7 +2561,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.599095153Z"
+    created: "2026-01-12T09:04:56.147820351Z"
     description: A Helm chart to deploy Sonarr
     digest: 32750da3742265f08a3c39a55b5656c2c985328076d862af469344369a1481d7
     home: https://sonarr.tv/
@@ -2361,7 +2583,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.598411461Z"
+    created: "2026-01-12T09:04:56.147056722Z"
     description: A Helm chart to deploy Sonarr
     digest: 56e2c9700cd1afc192d170c16f41bb644f9fe0137e74bc28eca062a9910182f7
     home: https://sonarr.tv/
@@ -2383,7 +2605,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.597724744Z"
+    created: "2026-01-12T09:04:56.145296848Z"
     description: A Helm chart to deploy Sonarr
     digest: 21dae36874d8b19b45542befadea6c6d63266fbba94e123e7f2c6c4dab560194
     name: sonarr
@@ -2393,7 +2615,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: 4.0.0
-    created: "2026-01-05T11:40:58.597328649Z"
+    created: "2026-01-12T09:04:56.14486221Z"
     description: A Helm chart to deploy Sonarr
     digest: 7b8699cec2ff7a7a33ee9281db746127a10855431c61059d777badd56aaa3bef
     name: sonarr
@@ -2403,7 +2625,7 @@ entries:
     version: 0.1.5
   supabase:
   - apiVersion: v2
-    created: "2026-01-05T11:40:58.616404048Z"
+    created: "2026-01-12T09:04:56.167131436Z"
     description: The open source Firebase alternative.
     digest: 30a43cc7d1672a213935979c7dad2cba036f344e0372198f279a7a0ce566f7f5
     icon: https://avatars.githubusercontent.com/u/54469796?s=280&v=4
@@ -2415,7 +2637,28 @@ entries:
   tautulli:
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.62023532Z"
+    created: "2026-01-12T09:04:56.171994825Z"
+    description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
+      for Plex Media Server
+    digest: 40f153c2380b8afc124ad3c2c631ae432fe521558eeb10d50bfcb20eec5d9f19
+    home: https://tautulli.com/
+    keywords:
+    - tautulli
+    - plex
+    - monitoring
+    - statistics
+    name: tautulli
+    sources:
+    - https://github.com/Tautulli/Tautulli
+    - https://github.com/linuxserver/docker-tautulli
+    - https://lscr.io/linuxserver/tautulli
+    type: application
+    urls:
+    - https://tomf141.github.io/helmcharts/tautulli-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-01-12T09:04:56.171381505Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: e823cfc50b294022ceb72508aab2ccbb8e4326e7dfce5d744e07bbdd6b24c554
@@ -2436,7 +2679,7 @@ entries:
     version: 1.0.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.619654597Z"
+    created: "2026-01-12T09:04:56.170772804Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: 65ad7e06c804b38ad290b974bff092b051c237225f7cd4a2b3c200ddbe397706
@@ -2457,7 +2700,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.61906485Z"
+    created: "2026-01-12T09:04:56.170179922Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: 7fe877f0247c9c68a7c892096b05f24907e629a16dcef6e92ee6b40281983b70
@@ -2478,7 +2721,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.618506438Z"
+    created: "2026-01-12T09:04:56.169559449Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: d95c5c5f2d2ab6a74340a649ef4fcc7558566278564b071a5be741244299c164
@@ -2499,7 +2742,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.617920187Z"
+    created: "2026-01-12T09:04:56.168959313Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: d0843a91a4d8e2d9a01c6a6eea60ac9e1971023d533e9512e0101a70365fe521
@@ -2510,7 +2753,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.617606176Z"
+    created: "2026-01-12T09:04:56.16857585Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: b48b4801d53057795ab6955d4a0f956c41a29bdb611a8abc1b38471549c34568
@@ -2521,7 +2764,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.617313076Z"
+    created: "2026-01-12T09:04:56.168095578Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: efa4ea248a677f1c5a7828a7277c67dda979d1b0f4c3032f04395ee65c2ad0a6
@@ -2532,7 +2775,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.617012443Z"
+    created: "2026-01-12T09:04:56.167757629Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: a0815c80bc6e226a654377be88f2d1d955a6fb298f0f55b9cd945096acacb2fc
@@ -2543,7 +2786,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: latest
-    created: "2026-01-05T11:40:58.616723632Z"
+    created: "2026-01-12T09:04:56.167441111Z"
     description: A Helm chart to deploy Tautulli - a monitoring and tracking tool
       for Plex Media Server
     digest: 03046c0bcd2fac00e76c6b362ab5bc48263ae2f18647242f817840944a00ae0e
@@ -2552,4 +2795,4 @@ entries:
     urls:
     - https://tomf141.github.io/helmcharts/tautulli-0.1.2.tgz
     version: 0.1.2
-generated: "2026-01-05T11:40:58.513657741Z"
+generated: "2026-01-12T09:04:56.051484277Z"
